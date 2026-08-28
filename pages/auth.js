@@ -348,6 +348,13 @@
             </div>
             <div class="alert-banner" data-status role="alert">${isRegister ? 'Create secure account' : 'Secure access only'}</div>`;
         const usernameValue = isRegister ? '' : escapeHtml(state.prefillUsername);
+        const confirmPasswordField = isRegister ? `
+                    <label class="sr-only" for="authConfirmPassword">Confirm Password</label>
+                    <div class="field-with-icon">
+                        <input class="form-field" id="authConfirmPassword" name="confirmPassword" type="password" placeholder="Confirm Password" autocomplete="new-password">
+                        <span class="confirm-lock-icon" aria-hidden="true"></span>
+                    </div>
+` : '';
 
         card.innerHTML = `
             <div class="auth-panel" data-auth-panel>
@@ -364,6 +371,7 @@
                         <input class="form-field" id="authPassword" name="password" type="password" placeholder="Password" autocomplete="${isRegister ? 'new-password' : 'current-password'}">
                         <span class="lock-icon" aria-hidden="true"></span>
                     </div>
+${confirmPasswordField}
 
                     <div class="captcha-row">
                         <label class="sr-only" for="authCaptcha">Captcha</label>
@@ -416,6 +424,7 @@
         return {
             username: card.querySelector('#authUsername').value.trim(),
             password: card.querySelector('#authPassword').value,
+            confirmPassword: card.querySelector('#authConfirmPassword')?.value || '',
             captcha: card.querySelector('#authCaptcha').value.trim(),
             captchaToken: state.captchaToken
         };
@@ -479,7 +488,7 @@
     function validate(values) {
         const errors = [];
 
-        ['username', 'password', 'captcha'].forEach((name) => markField(name, false));
+        ['username', 'password', 'confirmPassword', 'captcha'].forEach((name) => markField(name, false));
 
         if (!values.captchaToken) {
             errors.push('Captcha is loading. Please try again.');
@@ -510,6 +519,14 @@
             markField('password', true);
         }
 
+        if (!values.confirmPassword) {
+            errors.push('Confirm Password is required');
+            markField('confirmPassword', true);
+        } else if (values.password && values.confirmPassword !== values.password) {
+            errors.push('Passwords do not match');
+            markField('confirmPassword', true);
+        }
+
         if (!values.captcha) {
             errors.push('Captcha is required');
             markField('captcha', true);
@@ -530,6 +547,13 @@
             return;
         }
 
+        const payload = {
+            username: values.username,
+            password: values.password,
+            captcha: values.captcha,
+            captchaToken: values.captchaToken
+        };
+
         setSubmitting(true);
         setMessage(state.view === 'register' ? 'Creating account...' : 'Checking account...', 'success');
 
@@ -537,18 +561,22 @@
 
         try {
             if (state.view === 'register') {
-                await AuthApi.register(values);
+                await AuthApi.register(payload);
                 state.prefillUsername = values.username;
                 setMessage('Account created. You can now log in.', 'success');
                 showToast('Account created successfully. Please log in.', 'success');
                 refreshCaptcha();
                 card.querySelector('#authPassword').value = '';
+                const confirmPasswordInput = card.querySelector('#authConfirmPassword');
+                if (confirmPasswordInput) {
+                    confirmPasswordInput.value = '';
+                }
                 card.querySelector('#authCaptcha').value = '';
                 window.setTimeout(() => {
                     switchView('login');
                 }, 700);
             } else {
-                await AuthApi.login(values);
+                await AuthApi.login(payload);
                 setMessage('Access verified. Opening dashboard...', 'success');
                 app.classList.add('is-leaving');
                 willRedirect = true;
@@ -557,7 +585,7 @@
                 }, 420);
             }
         } catch (error) {
-            ['username', 'password', 'captcha'].forEach((name) => markField(name, false));
+            ['username', 'password', 'confirmPassword', 'captcha'].forEach((name) => markField(name, false));
 
             if (error.field) {
                 markField(error.field, true);
