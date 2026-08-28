@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | clubcc. Market</title>
+    <link rel="shortcut icon" href="/images/main-logo.png" type="image/png">
+    <link rel="stylesheet" href="/dashboard/dashboard.css">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="/dashboard/dashboard.js" defer></script>
+</head>
+
+<body>
+    <div class="dashboard-shell">
+        <aside class="dashboard-sidebar" aria-label="Dashboard navigation">
+            <section class="profile-card glass-card">
+                <img class="profile-avatar" src="/images/team1.jpg" alt="">
+                <div class="profile-meta">
+                    <strong id="sidebarUsername">Loading...</strong>
+                    <span>User</span>
+                </div>
+            </section>
+
+            <nav class="sidebar-nav">
+                <a class="nav-item is-active" href="#news" data-view-link="news" aria-current="page">
+                    <iconify-icon icon="mdi:newspaper-variant-outline" width="18" height="18"></iconify-icon>
+                    News
+                </a>
+                <a class="nav-item" href="#cards" data-view-link="cards">
+                    <iconify-icon icon="mdi:credit-card-chip-outline" width="18" height="18"></iconify-icon>
+                    Cards
+                </a>
+                <a class="nav-item" href="#deposit" data-view-link="deposit">
+                    <iconify-icon icon="mdi:wallet-plus-outline" width="18" height="18"></iconify-icon>
+                    Deposit
+                </a>
+                <a class="nav-item" href="#virtual-cards" data-view-link="virtual-cards">
+                    <iconify-icon icon="mdi:card-account-details-outline" width="18" height="18"></iconify-icon>
+                    Virtual Cards
+                </a>
+                <a class="nav-item" href="#ssn" data-view-link="ssn">
+                    <iconify-icon icon="mdi:map-marker-outline" width="18" height="18"></iconify-icon>
+                    SSN
+                </a>
+                <a class="nav-item" href="#chicken" data-view-link="chicken">
+                    <iconify-icon icon="mdi:checkerboard" width="18" height="18"></iconify-icon>
+                    Checkers
+                </a>
+                <div class="nav-submenu" aria-label="Checkers options">
+                    <a href="#chicken" data-view-link="chicken">Chicken</a>
+                    <a href="#otp-bypass" data-view-link="otp-bypass">Add to otp bypass</a>
+                </div>
+                <a class="nav-item" href="#otp-bypass" data-view-link="otp-bypass" aria-label="OTP Bypass">
+                    <iconify-icon icon="mdi:shield-key-outline" width="18" height="18"></iconify-icon>
+                    OTP Bypass
+                </a>
+                <a class="nav-item" href="#" data-coming-soon-nav>
+                    <iconify-icon icon="mdi:currency-usd" width="18" height="18"></iconify-icon>
+                    Card to usdt converter
+                </a>
+                <a class="nav-item" href="#" data-coming-soon-nav>
+                    <iconify-icon icon="mdi:phone-off-outline" width="18" height="18"></iconify-icon>
+                    Call bypass
+                </a>
+                <a class="nav-item" href="#">
+                    <iconify-icon icon="mdi:account-cash-outline" width="18" height="18"></iconify-icon>
+                    Affiliate
+                    <span class="nav-badge">New</span>
+                </a>
+                <a class="nav-item" href="#purchases" data-view-link="purchases">
+                    <iconify-icon icon="mdi:cart-outline" width="18" height="18"></iconify-icon>
+                    My Purchases
+                    <iconify-icon class="nav-chevron" icon="mdi:chevron-down" width="18" height="18"></iconify-icon>
+                </a>
+                <div class="nav-submenu" aria-label="Purchase categories">
+                    <a href="#purchases" data-view-link="purchases">CVV / Logs</a>
+                    <a href="#purchases/ssn" data-view-link="purchases-ssn">SSN</a>
+                </div>
+                <a class="nav-item" href="#tickets" data-view-link="tickets">
+                    <iconify-icon icon="mdi:map-marker-path" width="18" height="18"></iconify-icon>
+                    Tracking
+                    <iconify-icon class="nav-chevron" icon="mdi:chevron-down" width="18" height="18"></iconify-icon>
+                </a>
+                <div class="nav-submenu" aria-label="Tracking options">
+                    <a href="#tickets/create" data-view-link="tickets">Create Ticket</a>
+                    <a href="#tickets" data-view-link="tickets">Ticket History</a>
+                </div>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <div class="sidebar-contact-label">Contacts</div>
+                <a class="sidebar-contact-link" id="telegramSupportLink" href="https://t.me/clubcc_support" target="_blank" rel="noreferrer">
+                    <iconify-icon icon="mdi:telegram" width="18" height="18"></iconify-icon>
+                    Telegram
+                </a>
+                <a class="earn-button" href="#">Earn money</a>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="topbar glass-panel">
+                <a class="brand" href="/dashboard/">
+                    <span class="brand-mark">DL</span>
+                    <span>clubcc. Market</span>
+                </a>
+
+                <div class="topbar-actions">
+                    <button class="icon-button" type="button" aria-label="Messages">
+                        <iconify-icon icon="mdi:email-outline" width="20" height="20"></iconify-icon>
+                    </button>
+                    <a class="icon-button with-badge" href="/cart" aria-label="Cart">
+                        <iconify-icon icon="mdi:cart-outline" width="20" height="20"></iconify-icon>
+                        <span id="cartCount">3</span>
+                    </a>
+                    <button class="icon-button" type="button" aria-label="Notifications">
+                        <iconify-icon icon="mdi:bell-outline" width="20" height="20"></iconify-icon>
+                    </button>
+                    <button class="icon-button" id="fullscreenToggle" type="button" aria-label="Toggle fullscreen">
+                        <iconify-icon icon="mdi:fullscreen" width="22" height="22"></iconify-icon>
+                    </button>
+                    <a class="icon-button" href="/admin/" aria-label="Admin ticker settings">
+                        <iconify-icon icon="mdi:cog-outline" width="20" height="20"></iconify-icon>
+                    </a>
+                    <div class="wallet-menu">
+                        <button class="wallet-badge" id="walletBalance" type="button" aria-expanded="false" aria-controls="walletDropdown">$2.00</button>
+                        <div class="wallet-dropdown" id="walletDropdown" hidden>
+                            <a href="#deposit" data-wallet-deposit>Deposit</a>
+                            <button id="logoutButton" type="button">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="content-wrap" aria-live="polite">
+                <section class="dashboard-view is-active" id="newsView" data-dashboard-view="news">
+                    <h1>Dashboard</h1>
+
+                    <section class="activity-card glass-card dashboard-module news-card">
+                        <div class="online-badge">
+                            <span></span>
+                            <strong id="onlineCount">-- Users Online</strong>
+                        </div>
+                        <div class="activity-feed" id="activityFeed" aria-live="polite">
+                            <div class="ticker-list">
+                                <p>Loading live activity...</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="info-grid">
+                        <article class="info-card glass-card dashboard-module" id="attentionCard">
+                            <h2 id="attentionTitle">Attention</h2>
+                            <p id="attentionBody">Please bookmark the verified links below to keep access to your dashboard.</p>
+                            <ul class="link-list" id="attentionLinks">
+                                <li><span>WEB:</span> <a href="https://example.com" target="_blank" rel="noreferrer">https://example.com</a></li>
+                                <li><span>STATUS:</span> <a href="https://status.example.com" target="_blank" rel="noreferrer">https://status.example.com</a></li>
+                                <li><span class="accent-red">SUPPORT:</span> <a class="accent-red" href="/dashboard/#support">Open a secure ticket</a></li>
+                            </ul>
+                        </article>
+
+                        <article class="info-card glass-card dashboard-module" id="noticeCard">
+                            <h2 class="accent-blue" id="noticeTitle">Important Notice</h2>
+                            <div id="noticeParagraphs">
+                                <p>
+                                    Our service never asks for passwords, captcha codes, or payment details outside this website.
+                                    <strong class="accent-red">ONLY</strong> use the in-app support ticket system for account help.
+                                </p>
+                                <p>
+                                    Keep two-factor recovery information private and report suspicious messages immediately.
+                                </p>
+                            </div>
+                        </article>
+                    </section>
+
+                    <footer class="dashboard-footer">
+                        <a href="#news">News</a>
+                        <a href="#faq">FAQ</a>
+                        <a href="#support">Support</a>
+                    </footer>
+                </section>
+
+                <section class="dashboard-view" id="cardsView" data-dashboard-view="cards" hidden>
+                    <h1>Cards</h1>
+
+                    <section class="market-filter-panel glass-card dashboard-module" aria-labelledby="cardFilterTitle">
+                        <div class="section-heading">
+                            <h2 id="cardFilterTitle">Search Filters</h2>
+                            <button class="admin-button" type="reset" form="cardFilterForm">Reset</button>
+                        </div>
+
+                        <form class="market-filter-form" id="cardFilterForm">
+                            <label>
+                                Bins
+                                <input name="bins" type="text" autocomplete="off" placeholder="453721, 432369...">
+                            </label>
+                            <label>
+                                Bank
+                                <select name="bank" id="bankFilter"><option value="">- all -</option></select>
+                            </label>
+                            <label>
+                                Country
+                                <select name="country" id="countryFilter"></select>
+                            </label>
+                            <label>
+                                State
+                                <select name="state" id="stateFilter"><option value="">- all -</option></select>
+                            </label>
+                            <label>
+                                City
+                                <select name="city" id="cityFilter"><option value="">- all -</option></select>
+                            </label>
+                            <label>
+                                ZIP
+                                <input name="zip" type="text" autocomplete="off" placeholder="All">
+                            </label>
+                            <label>
+                                DOB
+                                <select name="dob">
+                                    <option value="">- all -</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </label>
+                            <label>
+                                SSN
+                                <select name="ssn">
+                                    <option value="">- all -</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </label>
+                            <label>
+                                Type
+                                <select name="type">
+                                    <option value="">- all -</option>
+                                    <option>AMEX</option>
+                                    <option>DISCOVER</option>
+                                    <option>JCB</option>
+                                    <option>MAESTRO</option>
+                                    <option>MASTERCARD</option>
+                                    <option>UNIONPAY</option>
+                                    <option>VISA</option>
+                                </select>
+                            </label>
+                            <label>
+                                Level
+                                <select name="level">
+                                    <option value="">- all -</option>
+                                    <option>BLACK</option>
+                                    <option>CENTURION</option>
+                                    <option>CLASSIC</option>
+                                    <option>GOLD</option>
+                                    <option>INFINITE</option>
+                                    <option>PLATINUM</option>
+                                    <option>PREMIER</option>
+                                    <option>SIGNATURE</option>
+                                    <option>STANDARD</option>
+                                    <option>WORLD</option>
+                                    <option>WORLD ELITE</option>
+                                </select>
+                            </label>
+                            <label>
+                                Class
+                                <select name="class">
+                                    <option value="">- all -</option>
+                                    <option>CREDIT</option>
+                                    <option>DEBIT</option>
+                                    <option>PREPAID</option>
+                                </select>
+                            </label>
+                            <label>
+                                Vendor
+                                <input name="vendor" type="text" autocomplete="off" placeholder="All">
+                            </label>
+                            <label>
+                                Per Page
+                                <select name="perPage">
+                                    <option selected>20</option>
+                                    <option>30</option>
+                                    <option>50</option>
+                                    <option>100</option>
+                                </select>
+                            </label>
+
+                            <div class="price-filter">
+                                <span>Price Range</span>
+                                <div class="price-inputs">
+                                    <label>
+                                        Min Price $
+                                        <input name="minPrice" type="number" min="0" max="9999.99" step="0.01" value="0" inputmode="decimal">
+                                    </label>
+                                    <label>
+                                        Max Price $
+                                        <input name="maxPrice" type="number" min="0" max="9999.99" step="0.01" value="150" inputmode="decimal">
+                                    </label>
+                                </div>
+                                <div class="price-fields">
+                                    <label>
+                                        From
+                                        <input name="priceFrom" type="range" min="0" max="250" step="1" value="0" aria-label="Minimum price slider">
+                                    </label>
+                                    <label>
+                                        To
+                                        <input name="priceTo" type="range" min="0" max="250" step="1" value="150" aria-label="Maximum price slider">
+                                    </label>
+                                </div>
+                                <div class="price-presets" aria-label="Quick price presets">
+                                    <button type="button" data-price-preset="1">$1</button>
+                                    <button type="button" data-price-preset="2">$2</button>
+                                    <button type="button" data-price-preset="5">$5</button>
+                                    <button type="button" data-price-preset="10">$10</button>
+                                    <button type="button" data-price-preset="20">$20</button>
+                                    <button type="button" data-price-preset="50">$50</button>
+                                    <button type="button" data-price-preset="100">$100</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="active-filter-chips" id="activeFilterChips" aria-live="polite"></div>
+                    </section>
+
+                    <section class="market-results glass-card dashboard-module" aria-labelledby="cardResultsTitle">
+                        <div class="results-toolbar">
+                            <h2 id="cardResultsTitle">Results</h2>
+                            <span><strong id="cardResultsCount">0 records</strong><small id="cardMatchTiming"></small></span>
+                        </div>
+
+                        <p class="card-fallback-notice" id="cardFallbackNotice" role="status" aria-live="polite" hidden></p>
+                        <p class="purchase-status" id="cardPurchaseStatus" role="status" aria-live="polite"></p>
+
+                        <div class="table-scroll">
+                            <table class="cards-table">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="selectAllCards" aria-label="Select all visible rows"></th>
+                                        <th>Type</th>
+                                        <th>Bin</th>
+                                        <th><button class="card-sort-button" type="button" data-card-sort="bank">Bank</button></th>
+                                        <th>Class</th>
+                                        <th>Level</th>
+                                        <th><button class="card-sort-button" type="button" data-card-sort="expiry">Expiry</button></th>
+                                        <th>Country</th>
+                                        <th>State</th>
+                                        <th>Zip</th>
+                                        <th>Database</th>
+                                        <th>SSN</th>
+                                        <th>DOB</th>
+                                        <th>Vendor</th>
+                                        <th><button class="card-sort-button" type="button" data-card-sort="price">Price</button></th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cardTableBody"></tbody>
+                            </table>
+                        </div>
+
+                        <nav class="card-pagination" id="cardPagination" aria-label="Card result pages"></nav>
+                    </section>
+                </section>
+
+                <section class="dashboard-view" id="ssnView" data-dashboard-view="ssn" hidden>
+                    <h1>SSN Shop</h1>
+                    <section class="market-filter-panel glass-card dashboard-module" aria-labelledby="ssnFilterTitle">
+                        <div class="section-heading">
+                            <h2 id="ssnFilterTitle">Search SSN Records</h2>
+                            <button class="admin-button" type="reset" form="ssnFilterForm">Reset</button>
+                        </div>
+                        <form class="ssn-filter-form" id="ssnFilterForm">
+                            <label>First Name<input name="firstName" type="search" autocomplete="off" placeholder="First name"></label>
+                            <label>Last Name<input name="lastName" type="search" autocomplete="off" placeholder="Last name"></label>
+                            <label>Search Type<select name="type"><option value="">Select type</option><option value="city">City</option><option value="state">State</option><option value="zip">ZIP</option><option value="dob">DOB</option></select></label>
+                            <label>Search Value<input name="value" type="search" autocomplete="off" placeholder="Search value"></label>
+                            <button class="admin-button admin-button-primary" type="submit">Search</button>
+                        </form>
+                    </section>
+                    <section class="market-results glass-card dashboard-module" aria-labelledby="ssnResultsTitle">
+                        <div class="results-toolbar">
+                            <h2 id="ssnResultsTitle">Available Records</h2>
+                            <span id="ssnResultsSummary" role="status" aria-live="polite">Loading...</span>
+                        </div>
+                        <p class="purchase-status" id="ssnStatus" role="status" aria-live="polite"></p>
+                        <div class="table-scroll ssn-table-scroll">
+                            <table class="ssn-table">
+                                <thead><tr><th>First Name</th><th>Last Name</th><th>DOB</th><th>City</th><th>State</th><th>ZIP</th><th>Action</th></tr></thead>
+                                <tbody id="ssnTableBody"><tr><td colspan="7" class="empty-history">Loading SSN records...</td></tr></tbody>
+                            </table>
+                        </div>
+                        <nav class="card-pagination" id="ssnPagination" aria-label="SSN result pages"></nav>
+                    </section>
+                </section>
+
+                <section class="dashboard-view" id="chickenView" data-dashboard-view="chicken" hidden>
+                    <div class="checker-heading">
+                        <h1>CHECK</h1>
+                        <span class="checker-price" id="checkerPrice">Price: $0.30</span>
+                    </div>
+
+                    <section class="checker-panel glass-card dashboard-module" aria-labelledby="checkerTitle">
+                        <h2 id="checkerTitle" class="sr-only">Card checker</h2>
+                        <div id="singleCheckPanel">
+                            <form class="checker-form" id="checkerForm">
+                                <label>CC Num *<input name="cardNumber" inputmode="numeric" autocomplete="off" placeholder="4000 0000 0000 0000" required></label>
+                                <label>Exp. (MM/YY) *<input name="expiry" inputmode="numeric" autocomplete="off" placeholder="MM/YY" required></label>
+                                <label>CVV2 *<input name="cvv" inputmode="numeric" autocomplete="off" placeholder="CVV2" required></label>
+                                <label>Address<input name="address" autocomplete="off" placeholder="Address"></label>
+                                <label>ZIP<input name="zip" inputmode="numeric" autocomplete="off" placeholder="ZIP"></label>
+                            </form>
+                            <div class="checker-actions">
+                                <button class="admin-button checker-action checker-action-primary" id="authorizeCheck" type="button">AUTHORIZE</button>
+                                <button class="admin-button checker-action checker-action-primary" id="zeroCheck" type="button">ZERO CHECK</button>
+                                <button class="admin-button checker-action checker-action-clear" id="clearChecker" type="button">CLEAR</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="checker-results glass-card dashboard-module" aria-labelledby="checkerResultsTitle">
+                        <div class="results-toolbar"><h2 id="checkerResultsTitle">Check Results</h2></div>
+                        <div class="table-scroll">
+                            <table class="checker-table">
+                                <thead><tr><th>Time</th><th>CC Num</th><th>Exp.</th><th>CVV2</th><th>Address</th><th>ZIP</th><th>Type</th><th>Status</th></tr></thead>
+                                <tbody id="checkerResultsBody"><tr><td colspan="8" class="empty-history">No checks yet.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </section>
+
+                <section class="dashboard-view" id="otpBypassView" data-dashboard-view="otp-bypass" hidden>
+                    <div class="checker-heading">
+                        <h1>SUB</h1>
+                        <span class="checker-price" id="subPriceBadge">Price: 120</span>
+                    </div>
+
+                    <section class="checker-panel glass-card dashboard-module" aria-labelledby="otpBypassTitle">
+                        <h2 id="otpBypassTitle" class="sr-only">OTP Bypass form</h2>
+                        <form class="checker-form sub-form" id="otpBypassForm" autocomplete="off">
+                            <label>CC Num *<input name="subCardNumber" type="text" placeholder="CC Num" required></label>
+                            <label>Exp. (MM/YY) *<input name="subExpiry" type="text" placeholder="MM/YY" required></label>
+                            <label>CVV2 *<input name="subCvv" type="text" placeholder="CVV2" required></label>
+                            <label>Address<input name="subAddress" type="text" placeholder="Address"></label>
+                            <label>ZIP<input name="subZip" type="text" placeholder="ZIP"></label>
+                        </form>
+                        <div class="sub-action-row">
+                            <button class="admin-button checker-action checker-action-primary" id="otpBypassButton" type="button">OTP BYPASS</button>
+                        </div>
+                    </section>
+                </section>
+
+                <section class="dashboard-view" id="ticketsView" data-dashboard-view="tickets" hidden>
+                    <div class="section-heading">
+                        <h1>Support Tickets</h1>
+                        <a class="admin-button admin-button-primary" href="#tickets/create">Create Ticket</a>
+                    </div>
+
+                    <section class="ticket-create-panel glass-card dashboard-module" id="ticketCreatePanel" hidden>
+                        <div class="section-heading"><h2>Create a new ticket</h2></div>
+                        <form class="ticket-form" id="ticketCreateForm" autocomplete="off">
+                            <label>Reason contact<select name="reasonContact" required>
+                                <option value="">Select reason</option>
+                                <option>Payment</option><option>Account</option><option>Order</option><option>Technical issue</option><option>Other</option>
+                            </select></label>
+                            <label>Subject<input name="subject" type="text" maxlength="160" placeholder="Subject" required></label>
+                            <label class="ticket-form-wide">Description<textarea name="description" rows="5" maxlength="5000" placeholder="A detailed description of your problem." required></textarea></label>
+                            <label class="ticket-form-wide">Payment Address<input name="paymentAddress" type="text" maxlength="220" placeholder="Payment Address" required></label>
+                            <p class="ticket-status" id="ticketCreateStatus" role="status" aria-live="polite"></p>
+                            <div class="checker-actions ticket-form-wide"><button class="admin-button admin-button-primary" type="submit">Create Ticket</button></div>
+                        </form>
+                    </section>
+
+                    <section class="ticket-history-panel glass-card dashboard-module" id="ticketHistoryPanel">
+                        <div class="section-heading"><h2>Ticket History</h2><button class="admin-button" id="refreshTickets" type="button">Refresh</button></div>
+                        <div class="ticket-list" id="ticketList"><p class="empty-history">Loading tickets...</p></div>
+                    </section>
+
+                    <section class="ticket-detail-panel glass-card dashboard-module" id="ticketDetailPanel" hidden>
+                        <div class="section-heading"><h2 id="ticketDetailTitle">Ticket</h2><button class="admin-button" id="backToTickets" type="button">Back</button></div>
+                        <div class="ticket-meta" id="ticketDetailMeta"></div>
+                        <div class="ticket-thread" id="ticketThread"></div>
+                        <form class="ticket-reply-form" id="ticketReplyForm" autocomplete="off">
+                            <label>Reply<textarea name="text" rows="3" maxlength="5000" placeholder="Write a reply..." required></textarea></label>
+                            <p class="ticket-status" id="ticketReplyStatus" role="status" aria-live="polite"></p>
+                            <button class="admin-button admin-button-primary" type="submit">Send Reply</button>
+                        </form>
+                    </section>
+                </section>
+
+                <section class="dashboard-view" id="purchasesView" data-dashboard-view="purchases" hidden>
+                    <h1>My Purchases</h1>
+
+                    <section class="market-results glass-card dashboard-module" aria-labelledby="purchaseHistoryTitle">
+                        <div class="results-toolbar">
+                            <h2 id="purchaseHistoryTitle">Completed Orders</h2>
+                            <button class="admin-button" id="refreshPurchases" type="button">Refresh</button>
+                        </div>
+                        <p class="purchase-status" id="purchaseStatus" role="status" aria-live="polite"></p>
+                        <div class="table-scroll">
+                            <table class="purchase-table">
+                                <thead>
+                                    <tr><th>ID</th><th>Item</th><th>Date</th><th>Status</th><th>Total</th><th>Reference</th><th>Action</th></tr>
+                                </thead>
+                                <tbody id="purchaseTableBody"><tr><td colspan="7" class="empty-history">No completed purchases yet.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </section>
+
+                <section class="dashboard-view" id="cartView" data-dashboard-view="cart" hidden>
+                    <h1>Cart</h1>
+                    <section class="market-results glass-card dashboard-module" aria-labelledby="cartTitle">
+                        <div class="results-toolbar">
+                            <h2 id="cartTitle">Selected Cards</h2>
+                            <button class="admin-button" id="removeSelectedCartItems" type="button">Remove Selected Items</button>
+                        </div>
+                        <p class="purchase-status" id="cartStatus" role="status" aria-live="polite"></p>
+                        <div class="table-scroll">
+                            <table class="purchase-table cart-table">
+                                <thead><tr><th><input type="checkbox" id="selectAllCartItems" aria-label="Select all cart items"></th><th>Card</th><th>Bank</th><th>Type</th><th>Country</th><th>Price</th><th>Action</th></tr></thead>
+                                <tbody id="cartTableBody"><tr><td colspan="7" class="empty-history">Loading cart...</td></tr></tbody>
+                            </table>
+                        </div>
+                        <div class="cart-summary">
+                            <span>Discount (on selected): <strong id="cartDiscount">$0.00</strong></span>
+                            <span>Summary Amount (selected): <strong id="cartTotal">$0.00</strong></span>
+                        </div>
+                        <div class="cart-actions">
+                            <a class="admin-button" href="/dashboard/#cards">Continue Shopping</a>
+                            <button class="admin-button admin-button-primary" id="completeOrder" type="button">Complete Order</button>
+                        </div>
+                    </section>
+                </section>
+
+
+                <section class="dashboard-view" id="depositView" data-dashboard-view="deposit" hidden>
+                    <h1>Deposit Funds</h1>
+
+                    <section class="deposit-panel glass-card dashboard-module" aria-labelledby="depositMethodsTitle">
+                        <div class="section-heading">
+                            <h2 id="depositMethodsTitle">Payment Method</h2>
+                            <span class="deposit-balance">Balance: <strong id="depositBalance">$2.00</strong></span>
+                        </div>
+                        <div class="payment-tabs" id="cryptoTabs" role="tablist" aria-label="Supported cryptocurrencies"></div>
+                        <div class="deposit-payment-card">
+                            <div class="deposit-payment-heading">
+                                <div>
+                                    <span class="deposit-eyebrow">Send payment</span>
+                                    <h3 id="selectedCryptoName">Bitcoin</h3>
+                                </div>
+                                <strong class="deposit-timer" id="depositTimer">40:00</strong>
+                            </div>
+                            <p class="deposit-note" id="depositNetworkNote">Loading wallet instructions...</p>
+                            <div class="deposit-wallet-grid">
+                                <img class="deposit-qr" id="depositQr" src="" alt="Payment wallet QR code" width="180" height="180">
+                                <div class="deposit-wallet-details">
+                                    <label for="depositAddress">Wallet address</label>
+                                    <div class="copy-field">
+                                        <input id="depositAddress" type="text" readonly>
+                                        <button class="admin-button" id="copyDepositAddress" type="button">Copy</button>
+                                    </div>
+                                    <p id="copyDepositStatus" class="copy-status" role="status" aria-live="polite"></p>
+                                    <button class="admin-button admin-button-primary" id="paidDepositButton" type="button">I Paid</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bonus-tiers" id="bonusTiers" aria-label="Deposit bonus tiers"></div>
+                    </section>
+
+                    <section class="deposit-history glass-card dashboard-module" aria-labelledby="depositHistoryTitle">
+                        <div class="section-heading">
+                            <h2 id="depositHistoryTitle">Orders History</h2>
+                        </div>
+                        <div class="table-scroll">
+                            <table class="deposit-table">
+                                <thead>
+                                    <tr><th>ID</th><th>Status</th><th>Date</th><th>Method</th><th>Amount</th><th>Value</th><th>Wallet</th></tr>
+                                </thead>
+                                <tbody id="depositHistoryBody"><tr><td colspan="7" class="empty-history">Loading deposit orders...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </section>
+
+                <section class="dashboard-view" id="virtualCardsView" data-dashboard-view="virtual-cards" hidden>
+                    <h1>Virtual Cards</h1>
+
+                    <section class="virtual-card-workspace glass-card dashboard-module">
+                        <div class="virtual-card-preview-wrap">
+                            <div class="virtual-card-preview is-visa" id="virtualCardPreview" aria-label="Virtual card preview">
+                                <div class="virtual-card-preview-top">
+                                    <span class="virtual-card-chip"></span>
+                                    <strong class="virtual-card-network" id="previewNetwork">VISA</strong>
+                                </div>
+                                <div class="virtual-card-number" id="previewNumber">4532 1098 7654 3210</div>
+                                <div class="virtual-card-preview-bottom">
+                                    <div><span>VALID THRU</span><strong id="previewExpiry">08/29</strong></div>
+                                    <div><span>CVV</span><strong id="previewCvv">***</strong></div>
+                                    <strong class="virtual-card-name" id="previewName">CARDHOLDER NAME</strong>
+                                </div>
+                            </div>
+                            <p class="virtual-card-preview-note">Your card details are generated securely for this account.</p>
+                        </div>
+
+                        <form class="virtual-card-form" id="virtualCardForm" autocomplete="off">
+                            <div class="section-heading">
+                                <h2>Create New Card</h2>
+                                <span class="virtual-card-balance">Available: <strong id="virtualCardBalance">$0.00</strong></span>
+                            </div>
+                            <label for="virtualCardType">Card Type
+                                <select id="virtualCardType" name="type">
+                                    <option value="VISA">Visa</option>
+                                    <option value="MASTERCARD">Mastercard</option>
+                                </select>
+                            </label>
+                            <label for="virtualCardAmount">Amount (USD)
+                                <input id="virtualCardAmount" name="amount" type="number" min="5" max="1000" step="0.01" value="10" required>
+                            </label>
+                            <label for="virtualCardName">Card Name
+                                <input id="virtualCardName" name="name" type="text" maxlength="60" placeholder="John Doe" required>
+                            </label>
+                            <p class="virtual-card-status" id="virtualCardStatus" role="status" aria-live="polite"></p>
+                            <button class="admin-button admin-button-primary" type="submit">Create Card</button>
+                        </form>
+                    </section>
+
+                    <section class="virtual-card-history glass-card dashboard-module" aria-labelledby="virtualCardsTitle">
+                        <div class="section-heading">
+                            <h2 id="virtualCardsTitle">Your Virtual Cards</h2>
+                            <button class="admin-button" id="refreshVirtualCards" type="button">Refresh</button>
+                        </div>
+                        <div class="table-scroll">
+                            <table class="virtual-cards-table">
+                                <thead><tr><th>ID</th><th>Type</th><th>Amount</th><th>Name</th><th>Number</th><th>Expiry</th><th>CVV</th><th>Status</th><th>Action</th></tr></thead>
+                                <tbody id="virtualCardsTableBody"><tr><td colspan="9" class="empty-history">No virtual cards yet.</td></tr></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </section>
+            </section>
+        </main>
+    </div>
+    <div class="dashboard-toast" id="dashboardToast" role="status" aria-live="polite" hidden></div>
+
+    <div class="modal-backdrop purchase-details-modal" id="purchaseDetailsModal" hidden>
+        <section class="checker-dialog glass-card" role="dialog" aria-modal="true" aria-labelledby="purchaseDetailsTitle">
+            <h2 id="purchaseDetailsTitle">Order Details</h2>
+            <div class="purchase-details-content" id="purchaseDetailsContent"></div>
+            <button class="admin-button checker-ok-button" id="purchaseDetailsClose" type="button">Close</button>
+        </section>
+    </div>
+
+    <div class="modal-backdrop checker-processing-modal" id="checkerProcessingModal" hidden>
+        <section class="checker-dialog glass-card" role="alertdialog" aria-modal="true" aria-labelledby="checkerProcessingTitle">
+            <span class="checker-spinner" aria-hidden="true"></span>
+            <h2 id="checkerProcessingTitle">Processing Request...</h2>
+            <p>Please wait 10 seconds while system is checking...</p>
+        </section>
+    </div>
+
+    <div class="modal-backdrop checker-coming-modal" id="checkerComingModal" hidden>
+        <section class="checker-dialog glass-card" role="dialog" aria-modal="true" aria-labelledby="checkerComingTitle">
+            <span class="checker-info-icon" aria-hidden="true">i</span>
+            <h2 id="checkerComingTitle">COMING SOON</h2>
+            <p>We are working on this feature.<br>Please check again later.</p>
+            <button class="admin-button checker-ok-button" id="checkerComingOk" type="button">OK</button>
+        </section>
+    </div>
+
+    <div class="modal-backdrop" id="paidDepositModal" hidden>
+        <section class="deposit-modal glass-card" role="dialog" aria-modal="true" aria-labelledby="paidDepositTitle">
+            <div class="section-heading">
+                <h2 id="paidDepositTitle">Submit Payment</h2>
+                <button class="modal-close" id="closePaidModal" type="button" aria-label="Close">&times;</button>
+            </div>
+            <form id="paidDepositForm" class="deposit-form">
+                <label>Amount ($)<input id="depositAmount" type="number" min="0" step="0.01" required></label>
+                <label>Transaction ID <span>(optional)</span><input id="depositTxid" type="text" maxlength="180" autocomplete="off"></label>
+                <label>Payment screenshot <span>(optional)</span><input id="depositScreenshot" type="file" accept="image/*"></label>
+                <p class="modal-status" id="paidDepositStatus" role="status" aria-live="polite"></p>
+                <button class="admin-button admin-button-primary" type="submit">Submit for Review</button>
+            </form>
+        </section>
+    </div>
+</body>
+
+</html>

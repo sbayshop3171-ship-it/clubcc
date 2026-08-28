@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Ticker Settings | clubcc. Market</title>
+    <link rel="shortcut icon" href="/images/main-logo.png" type="image/png">
+    <link rel="stylesheet" href="/dashboard/dashboard.css">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="/admin/admin.js" defer></script>
+</head>
+
+<body>
+    <main class="admin-shell">
+        <header class="admin-header glass-panel">
+            <a class="brand" href="/dashboard/">
+                <span class="brand-mark">DL</span>
+                <span>clubcc. Market</span>
+            </a>
+            <nav class="admin-header-actions" aria-label="Admin navigation">
+                <a class="admin-button" href="/dashboard/">Dashboard</a>
+                <a class="admin-button" href="#checker">Checker</a>
+                <a class="admin-button" href="/admin/payment">Payment</a>
+                <button class="admin-button" id="logoutButton" type="button">Logout</button>
+            </nav>
+        </header>
+
+        <section class="admin-content">
+            <div class="admin-title-row">
+                <div>
+                    <span class="admin-kicker">Admin Panel</span>
+                    <h1>Ticker Settings</h1>
+                </div>
+                <span class="settings-status" id="settingsStatus">Loading</span>
+            </div>
+
+            <section class="ticker-admin-card glass-card dashboard-module" id="checker" aria-labelledby="checkerSettingsTitle">
+                <div class="section-heading">
+                    <h2 id="checkerSettingsTitle">Checker Settings</h2>
+                    <span class="settings-status" id="checkerSettingsStatus">Loading</span>
+                </div>
+                <form class="settings-form" id="checkerSettingsForm">
+                    <div class="settings-grid settings-grid-compact">
+                        <label>Checker price ($)<input id="checkerPriceInput" type="number" min="0" max="100000" step="0.01" required></label>
+                    </div>
+                    <div class="settings-actions">
+                        <button class="admin-button admin-button-primary" type="submit">Save checker price</button>
+                    </div>
+                </form>
+                <form class="settings-form sub-price-settings-form" id="subPriceSettingsForm">
+                    <div class="settings-grid settings-grid-compact">
+                        <label>SUB Service Price ($)<input id="subPriceInput" type="number" min="0" max="100000" step="0.01" required></label>
+                    </div>
+                    <div class="settings-actions">
+                        <button class="admin-button admin-button-primary" type="submit">Save Price</button>
+                    </div>
+                    <span class="settings-status" id="subPriceSettingsStatus" role="status" aria-live="polite"></span>
+                </form>
+            </section>
+
+            <section class="ticker-admin-card glass-card dashboard-module" aria-labelledby="twoFactorSettingsTitle">
+                <div class="section-heading">
+                    <h2 id="twoFactorSettingsTitle">Google Authenticator 2FA</h2>
+                    <span class="settings-status" id="twoFactorStatus">Loading</span>
+                </div>
+                <form class="settings-form" id="twoFactorSettingsForm">
+                    <label class="toggle-field">
+                        <input id="twoFactorToggle" type="checkbox">
+                        <span>Require authenticator code at admin login</span>
+                    </label>
+                    <div id="twoFactorSetup" hidden>
+                        <p>Scan this QR code in Google Authenticator, then confirm with the current code.</p>
+                        <img id="twoFactorQr" width="220" height="220" alt="Google Authenticator setup QR code">
+                        <p>Manual key: <strong id="twoFactorSecret"></strong></p>
+                    </div>
+                    <label>Authenticator code<input id="twoFactorCode" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required></label>
+                    <div class="settings-actions">
+                        <button class="admin-button admin-button-primary" type="submit">Save 2FA settings</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="activity-card glass-card dashboard-module">
+                <div class="online-badge">
+                    <span></span>
+                    <strong id="onlinePreview">-- Users Online</strong>
+                </div>
+                <div class="activity-feed" id="previewFeed" aria-live="polite">
+                    <div class="ticker-list">
+                        <p>Preview loading...</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ticker-admin-card glass-card dashboard-module" aria-labelledby="tickerControlsTitle">
+                <div class="section-heading">
+                    <h2 id="tickerControlsTitle">Ticker Controls</h2>
+                </div>
+
+                <form class="ticker-settings-form" id="tickerSettingsForm">
+                    <div class="settings-grid settings-grid-compact">
+                        <label>
+                            Online base
+                            <input id="onlineBaseInput" type="number" min="0" max="100000" step="1">
+                        </label>
+                        <label>
+                            Interval (ms)
+                            <input id="slideIntervalInput" type="number" min="1500" max="60000" step="500">
+                        </label>
+                        <label>
+                            Variation +/-
+                            <input id="fluctuationRangeInput" type="number" min="0" max="500" step="1">
+                        </label>
+                        <label class="toggle-field">
+                            <input id="autoFluctuateToggle" type="checkbox">
+                            <span>Auto fluctuation</span>
+                        </label>
+                    </div>
+
+                    <div class="settings-grid settings-grid-wide">
+                        <label>
+                            User pool
+                            <textarea id="tickerUsersInput" rows="5" spellcheck="false"></textarea>
+                        </label>
+                        <label>
+                            Action templates
+                            <textarea id="tickerActionsInput" rows="5" spellcheck="false" placeholder="just deposited | amounts | Completed"></textarea>
+                        </label>
+                        <label>
+                            Amounts
+                            <textarea id="tickerAmountsInput" rows="4" spellcheck="false"></textarea>
+                        </label>
+                        <label>
+                            Orders
+                            <textarea id="tickerOrdersInput" rows="4" spellcheck="false"></textarea>
+                        </label>
+                        <label>
+                            Tickets
+                            <textarea id="tickerTicketsInput" rows="4" spellcheck="false"></textarea>
+                        </label>
+                        <label>
+                            Labels
+                            <textarea id="tickerLabelsInput" rows="4" spellcheck="false"></textarea>
+                        </label>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button class="admin-button admin-button-primary" type="submit">Save settings</button>
+                        <button class="admin-button" id="resetTickerSettings" type="button">Reload</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="ticker-admin-card glass-card dashboard-module" aria-labelledby="paymentSettingsTitle">
+                <div class="section-heading">
+                    <h2 id="paymentSettingsTitle">Payment Gateway Settings</h2>
+                    <button class="admin-button" id="addPaymentMethod" type="button">Add method</button>
+                </div>
+                <form class="payment-settings-form" id="paymentSettingsForm">
+                    <div class="settings-grid settings-grid-compact">
+                        <label>Minimum deposit ($)<input id="minimumDepositInput" type="number" min="0" step="0.01"></label>
+                        <label>Payment window (minutes)<input id="paymentWindowInput" type="number" min="5" max="180" step="1"></label>
+                    </div>
+                    <div class="admin-payment-methods" id="adminPaymentMethods"></div>
+                    <div class="settings-actions">
+                        <button class="admin-button admin-button-primary" type="submit">Save payment settings</button>
+                    </div>
+                    <p class="settings-status" id="paymentSettingsStatus">Loading</p>
+                </form>
+            </section>
+
+            <section class="ticker-admin-card glass-card dashboard-module" aria-labelledby="depositRequestsTitle">
+                <div class="section-heading">
+                    <h2 id="depositRequestsTitle">Deposit Requests</h2>
+                    <button class="admin-button" id="refreshDeposits" type="button">Refresh</button>
+                </div>
+                <div class="table-scroll">
+                    <table class="deposit-table admin-deposit-table">
+                        <thead><tr><th>ID</th><th>User</th><th>Date</th><th>Method</th><th>Amount</th><th>TxID</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="adminDepositBody"><tr><td colspan="8" class="empty-history">Loading deposit requests...</td></tr></tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+</body>
+
+</html>

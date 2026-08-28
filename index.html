@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>clubcc. Market Admin | Control Panel</title>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="author" content="TemplatesJungle">
+    <meta name="keywords" content="Admin Dashboard">
+    <meta name="description" content="Dashlite is a Bootstrap 5 HTML/CSS Admin Dashboard">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Iconify -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/style.css">
+    <!-- Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap"
+        rel="stylesheet">
+
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar" class="d-flex flex-column flex-shrink-0 text-white">
+        <div class="p-3 d-flex align-items-center justify-content-between">
+            <img src="/images/main-logo.png" class="img-fluid" alt="clubcc. Market">
+            <button class="btn btn-sm d-block d-lg-none" id="sidebarclose">
+                <iconify-icon icon="mdi:hamburger-menu-back" class="text-white" width="24" height="24"></iconify-icon>
+            </button>
+        </div>
+
+        <hr class="mt-0 mb-2">
+
+        <ul class="nav flex-column mb-auto px-2">
+            <li class="nav-item">
+                <a href="/admin" class="nav-link sidebar-link py-3 active" id="dashboardNavLink"
+                    data-admin-view="dashboard">
+                    <iconify-icon icon="material-symbols:speed-outline" width="24" height="24"></iconify-icon>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/users" class="nav-link sidebar-link py-3" id="usersNavLink" data-admin-view="users">
+                    <iconify-icon icon="mdi:account-group-outline" width="24" height="24"></iconify-icon>
+                    Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/cards" class="nav-link sidebar-link py-3" id="cardsNavLink" data-admin-view="cards">
+                    <iconify-icon icon="mdi:credit-card-chip-outline" width="24" height="24"></iconify-icon>
+                    Cards
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/purchases" class="nav-link sidebar-link py-3" id="purchasesNavLink" data-admin-view="purchases">
+                    <iconify-icon icon="mdi:receipt-text-outline" width="24" height="24"></iconify-icon>
+                    Purchases
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/checker" class="nav-link sidebar-link py-3" id="checkerNavLink" data-admin-view="checker">
+                    <iconify-icon icon="mdi:checkerboard" width="24" height="24"></iconify-icon>
+                    Checker
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/checker" class="nav-link sidebar-link py-3" data-admin-view="checker">
+                    <iconify-icon icon="mdi:shield-key-outline" width="24" height="24"></iconify-icon>
+                    OTP Bypass
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/tickets" class="nav-link sidebar-link py-3" id="ticketsNavLink" data-admin-view="tickets">
+                    <iconify-icon icon="mdi:ticket-outline" width="24" height="24"></iconify-icon>
+                    Tickets
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin#ssn" class="nav-link sidebar-link py-3" id="ssnNavLink" data-admin-view="ssn">
+                    <iconify-icon icon="mdi:account-search-outline" width="24" height="24"></iconify-icon>
+                    SSN Management
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/payment" class="nav-link sidebar-link py-3" id="paymentNavLink" data-admin-view="payment">
+                    <iconify-icon icon="mdi:cash-multiple" width="24" height="24"></iconify-icon>
+                    Payment
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/admin/payment#requests" class="nav-link sidebar-link py-3" id="depositRequestsNavLink" data-admin-view="requests">
+                    <iconify-icon icon="mdi:clipboard-text-clock-outline" width="24" height="24"></iconify-icon>
+                    Deposit Requests
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div id="content">
+        <!-- Topbar -->
+        <nav id="topbar" class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <div class="container-fluid p-lg-4">
+                <button class="btn btn-sm p-0" id="sidebarToggle">
+                    <iconify-icon icon="mdi:hamburger-menu-back" width="24" height="24"></iconify-icon>
+                </button>
+
+                <div class="d-flex align-items-center">
+                    <!-- Search -->
+                    <div class="me-3 position-relative">
+                        <iconify-icon icon="material-symbols:search" width="20" height="20"
+                            class="position-absolute top-50 start-0 translate-middle-y ms-2"></iconify-icon>
+                        <input type="text" class="form-control ps-4 shadow-none" placeholder="Search..."
+                            style="width: 120px;">
+                    </div>
+
+                    <!-- Messages Dropdown -->
+                    <div class="dropdown me-3">
+                        <a class="position-relative" href="#" role="button" id="messagesDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <iconify-icon icon="ri:message-2-line" width="24" height="24"></iconify-icon>
+                            <span
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                                5
+                                <span class="visually-hidden">unread messages</span>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="messagesDropdown"
+                            style="width: 320px;">
+                            <li
+                                class="dropdown-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
+                                <span>Messages</span>
+                                <a href="#" class="small">Mark all as read</a>
+                            </li>
+                            <li class="px-2 py-1">
+                                <a href="#" class="dropdown-item d-flex align-items-start py-2">
+                                    <img src="/images/team2.jpg" class="rounded-circle me-2" width="40" height="40" alt="">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>John Doe</strong>
+                                            <small class="text-muted">2 min ago</small>
+                                        </div>
+                                        <p class="mb-0 text-truncate" style="max-width: 220px;">Hey there! I wanted to
+                                            ask about the project timeline...</p>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="px-2 py-1">
+                                <a href="#" class="dropdown-item d-flex align-items-start py-2">
+                                    <img src="/images/team5.jpg" class="rounded-circle me-2" width="40" height="40" alt="">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>Sarah Smith</strong>
+                                            <small class="text-muted">1 hour ago</small>
+                                        </div>
+                                        <p class="mb-0 text-truncate" style="max-width: 220px;">The documents you
+                                            requested are ready for review...</p>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="px-2 py-1">
+                                <a href="#" class="dropdown-item d-flex align-items-start py-2">
+                                    <img src="/images/team4.jpg" class="rounded-circle me-2" width="40" height="40" alt="">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>Team Update</strong>
+                                            <small class="text-muted">3 hours ago</small>
+                                        </div>
+                                        <p class="mb-0 text-truncate" style="max-width: 220px;">Monthly team meeting
+                                            scheduled for Friday at 2pm...</p>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="dropdown-footer text-center py-2">
+                                <a href="#" class="text-primary">View all messages</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Notifications Dropdown -->
+                    <div class="dropdown me-3">
+                        <a class="position-relative" href="#" role="button" id="notificationsDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <iconify-icon icon="mdi:bell-outline" width="24" height="24"></iconify-icon>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-info">
+                                8+
+                                <span class="visually-hidden">unread notifications</span>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="notificationsDropdown"
+                            style="width: 320px;">
+                            <li
+                                class="dropdown-header bg-light py-2 px-3 d-flex justify-content-between align-items-center">
+                                <span>Notifications</span>
+                                <a href="#" class="small">Clear all</a>
+                            </li>
+                            <li class="px-2 py-1">
+                                <a href="#" class="dropdown-item d-flex align-items-start py-2">
+                                    <div class="me-2 text-success">
+                                        <iconify-icon icon="mdi:check-circle-outline" width="24"
+                                            height="24"></iconify-icon>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0">Your order #12345 has been shipped</p>
+                                        <small class="text-muted">Just now</small>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="px-2 py-1">
+                                <a href="#" class="dropdown-item d-flex align-items-start py-2">
+                                    <div class="me-2 text-warning">
+                                        <iconify-icon icon="mdi:alert-circle-outline" width="24"
+                                            height="24"></iconify-icon>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0">System maintenance scheduled for tonight</p>
+                                        <small class="text-muted">30 minutes ago</small>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="px-2 py-1">
+                                <a href="/admin/cards" class="dropdown-item d-flex align-items-start py-2"
+                                    data-admin-view="cards">
+                                    <div class="me-2 text-primary">
+                                        <iconify-icon icon="mdi:credit-card-edit-outline" width="24" height="24"></iconify-icon>
+                                    </div>
+                                    <div>
+                                        <p class="mb-0">Card inventory editor is ready</p>
+                                        <small class="text-muted">Open admin cards</small>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="dropdown-footer text-center py-2">
+                                <a href="#" class="text-primary">View all notifications</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Admin Profile Dropdown -->
+                    <div class="dropdown">
+                        <a class="dropdown-toggle d-flex align-items-center text-decoration-none" href="#" role="button"
+                            id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="/images/team1.jpg" class="rounded-circle me-2" width="32" height="32" alt="">
+                            <span class="d-none d-md-inline fw-semibold text-dark" id="adminTopbarName">Admin</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="/admin/profile"
+                                    data-admin-view="profile">
+                                    <iconify-icon icon="mdi:account-outline" class="me-2" width="20"
+                                        height="20"></iconify-icon>
+                                    Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="/admin/settings"
+                                    data-admin-view="settings">
+                                    <iconify-icon icon="mdi:cog-outline" class="me-2" width="20"
+                                        height="20"></iconify-icon>
+                                    Settings
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <button class="dropdown-item d-flex align-items-center admin-logout-button" type="button"
+                                    id="adminLogoutButton">
+                                    <iconify-icon icon="mdi:logout-variant" class="me-2" width="20"
+                                        height="20"></iconify-icon>
+                                    Logout
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="container-fluid px-lg-4" id="main-content">
+            <section id="dashboardSection" class="admin-dashboard-section py-4" data-admin-view-panel="dashboard">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Dashboard</h5>
+                        <p class="mb-0 text-muted">Counters and notices published to the user dashboard.</p>
+                    </div>
+                    <button class="btn btn-dark d-inline-flex align-items-center gap-2" type="button"
+                        id="refreshDashboardSettings">
+                        <iconify-icon icon="mdi:refresh" width="18" height="18"></iconify-icon>
+                        Refresh
+                    </button>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4 admin-online-card">
+                    <div class="card-body">
+                        <div class="d-flex flex-column flex-xl-row align-items-xl-end justify-content-between gap-3">
+                            <div>
+                                <span class="text-uppercase text-muted small fw-semibold">Dashboard Counter</span>
+                                <h6 class="mb-0">Users Online</h6>
+                            </div>
+                            <form class="admin-online-form" id="onlineUsersForm" autocomplete="off">
+                                <label class="form-label mb-0" for="adminOnlineCountInput">Online Number</label>
+                                <input class="form-control" id="adminOnlineCountInput" name="onlineBase" type="number"
+                                    min="0" max="100000" step="1" inputmode="numeric" value="78">
+                                <span class="admin-online-preview" id="adminOnlinePreview">78 Users Online</span>
+                                <button class="btn btn-dark d-inline-flex align-items-center gap-2" type="submit"
+                                    id="saveOnlineUsers">
+                                    <iconify-icon icon="mdi:content-save-outline" width="18" height="18"></iconify-icon>
+                                    Save
+                                </button>
+                                <span class="admin-online-status" id="adminOnlineStatus" role="status"
+                                    aria-live="polite">Synced</span>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4 admin-content-card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Dashboard Notices</span>
+                        <span class="admin-content-status" id="dashboardContentStatus" role="status"
+                            aria-live="polite">Synced</span>
+                    </div>
+                    <div class="card-body">
+                        <form class="admin-content-form" id="dashboardContentForm" autocomplete="off">
+                            <div class="row g-3">
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="attentionTitleInput">Attention Title</label>
+                                    <input class="form-control" id="attentionTitleInput" type="text" maxlength="60"
+                                        value="Attention">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="noticeTitleInput">Important Notice Title</label>
+                                    <input class="form-control" id="noticeTitleInput" type="text" maxlength="60"
+                                        value="Important Notice">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="attentionBodyInput">Attention Text</label>
+                                    <textarea class="form-control" id="attentionBodyInput" rows="3"
+                                        maxlength="260">Please bookmark the verified links below to keep access to your dashboard.</textarea>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="noticeParagraphsInput">Important Notice Text</label>
+                                    <textarea class="form-control" id="noticeParagraphsInput"
+                                        rows="3">Our service never asks for passwords, captcha codes, or payment details outside this website. ONLY use the in-app support ticket system for account help.
+Keep two-factor recovery information private and report suspicious messages immediately.</textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="attentionLinksInput">Attention Links</label>
+                                    <textarea class="form-control admin-link-editor" id="attentionLinksInput"
+                                        rows="3" spellcheck="false">WEB | https://example.com | https://example.com | blue
+STATUS | https://status.example.com | https://status.example.com | blue
+SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="telegramUrlInput">Telegram Support URL</label>
+                                    <input class="form-control" id="telegramUrlInput" type="url"
+                                        placeholder="https://t.me/your_support_link">
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2 mt-3">
+                                <button class="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
+                                    id="reloadDashboardContent" type="button">
+                                    <iconify-icon icon="mdi:reload" width="18" height="18"></iconify-icon>
+                                    Reload
+                                </button>
+                                <button class="btn btn-dark d-inline-flex align-items-center gap-2"
+                                    id="saveDashboardContent" type="submit">
+                                    <iconify-icon icon="mdi:content-save-outline" width="18" height="18"></iconify-icon>
+                                    Save Notices
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </section>
+
+            <section id="checkerSection" class="admin-dashboard-section py-4" data-admin-view-panel="checker" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Checker</h5>
+                        <p class="mb-0 text-muted">Set the price displayed on the user checker page.</p>
+                    </div>
+                    <span class="admin-content-status" id="checkerSettingsStatus" role="status" aria-live="polite">Loading</span>
+                </div>
+                <div class="card border-0 shadow-sm admin-content-card">
+                    <div class="card-header bg-white"><span class="fw-semibold">Checker Price</span></div>
+                    <div class="card-body">
+                        <form id="checkerSettingsForm" autocomplete="off">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="checkerPriceInput">Price ($)</label>
+                                    <input class="form-control" id="checkerPriceInput" type="number" min="0" max="100000" step="0.01" value="0.30" required>
+                                </div>
+                                <div class="col-md-auto">
+                                    <button class="btn btn-dark d-inline-flex align-items-center gap-2" type="submit">
+                                        <iconify-icon icon="mdi:content-save-outline" width="18" height="18"></iconify-icon>
+                                        Save Price
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm admin-content-card mt-3">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">OTP Bypass / SUB Price</span>
+                        <span class="admin-content-status" id="subPriceSettingsStatus" role="status" aria-live="polite">Loading</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="subPriceSettingsForm" autocomplete="off">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="subPriceInput">SUB Service Price ($)</label>
+                                    <input class="form-control" id="subPriceInput" type="number" min="0" max="100000" step="0.01" value="120.00" required>
+                                </div>
+                                <div class="col-md-auto">
+                                    <button class="btn btn-dark d-inline-flex align-items-center gap-2" type="submit">
+                                        <iconify-icon icon="mdi:content-save-outline" width="18" height="18"></iconify-icon>
+                                        Save Price
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="ticketsSection" class="admin-dashboard-section py-4" data-admin-view-panel="tickets" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Support Tickets</h5>
+                        <p class="mb-0 text-muted">Review conversations and respond to user tickets.</p>
+                    </div>
+                    <span class="admin-content-status" id="adminTicketsStatus" role="status" aria-live="polite">Loading</span>
+                </div>
+                <div class="card border-0 shadow-sm admin-content-card">
+                    <div class="card-header bg-white d-flex flex-wrap gap-2 align-items-center">
+                        <span class="fw-semibold me-auto">Ticket List</span>
+                        <div class="btn-group" role="group" aria-label="Ticket status filters">
+                            <button class="btn btn-sm btn-dark admin-ticket-filter" data-ticket-status="All" type="button">All</button>
+                            <button class="btn btn-sm btn-outline-dark admin-ticket-filter" data-ticket-status="Open" type="button">Open</button>
+                            <button class="btn btn-sm btn-outline-dark admin-ticket-filter" data-ticket-status="Replied" type="button">Replied</button>
+                            <button class="btn btn-sm btn-outline-dark admin-ticket-filter" data-ticket-status="Closed" type="button">Closed</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Ticket</th><th>User</th><th>Subject</th><th>Status</th><th>Updated</th><th>Action</th></tr></thead>
+                            <tbody id="adminTicketsTableBody"><tr><td colspan="6">Loading tickets...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm admin-content-card mt-3" id="adminTicketDetail" hidden>
+                    <div class="card-header bg-white d-flex align-items-center gap-2">
+                        <strong id="adminTicketDetailTitle">Ticket</strong>
+                        <select class="form-select form-select-sm ms-auto" id="adminTicketStatusInput" aria-label="Ticket status" style="max-width: 140px">
+                            <option>Open</option><option>Replied</option><option>Closed</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-dark" id="adminTicketSaveStatus" type="button">Save Status</button>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small" id="adminTicketDetailMeta"></p>
+                        <div class="admin-ticket-thread" id="adminTicketThread"></div>
+                        <form id="adminTicketReplyForm" class="mt-3">
+                            <label class="form-label" for="adminTicketReplyInput">Reply</label>
+                            <textarea class="form-control" id="adminTicketReplyInput" rows="3" maxlength="5000" required></textarea>
+                            <button class="btn btn-dark mt-2" type="submit">Send Reply</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="usersSection" class="admin-users-section py-4" data-admin-view-panel="users" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Users</h5>
+                        <p class="mb-0 text-muted">Registered user accounts from the local auth database.</p>
+                    </div>
+                    <button class="btn btn-dark d-inline-flex align-items-center gap-2" type="button"
+                        id="refreshUsers">
+                        <iconify-icon icon="mdi:refresh" width="18" height="18"></iconify-icon>
+                        Refresh
+                    </button>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Registered Accounts</span>
+                        <span class="badge bg-dark rounded-pill" id="usersCount">0 users</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 admin-users-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Username</th>
+                                    <th scope="col">Status</th>
+                                    <th scope="col">Created</th>
+                                    <th scope="col">Last Login</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-5">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="admin-users-empty" id="usersEmptyState" hidden>
+                        No registered users yet.
+                    </div>
+                </div>
+            </section>
+
+            <section id="cardsSection" class="admin-cards-section py-4" data-admin-view-panel="cards" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Cards</h5>
+                        <p class="mb-0 text-muted">Saved masked records shown in the dashboard Cards results table.</p>
+                    </div>
+                    <a class="btn btn-dark d-inline-flex align-items-center gap-2" href="/dashboard/#cards"
+                        target="_blank" rel="noreferrer">
+                        <iconify-icon icon="mdi:open-in-new" width="18" height="18"></iconify-icon>
+                        Open Results
+                    </a>
+                </div>
+
+                <div class="card border-0 shadow-sm admin-card-editor">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Card Details</span>
+                        <span class="admin-content-status" id="adminCardsStatus" role="status"
+                            aria-live="polite">Loading</span>
+                    </div>
+                    <div class="card-body">
+                        <form class="admin-card-form" id="adminCardForm" autocomplete="off">
+                            <div class="row g-3">
+                                <div class="col-md-3 col-xl-2">
+                                    <label class="form-label" for="adminCardType">Type</label>
+                                    <select class="form-select" id="adminCardType" name="type">
+                                        <option>VISA</option>
+                                        <option>MASTERCARD</option>
+                                        <option>AMEX</option>
+                                        <option>DISCOVER</option>
+                                        <option>JCB</option>
+                                        <option>MAESTRO</option>
+                                        <option>UNIONPAY</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-xl-2">
+                                    <label class="form-label" for="adminCardBin">Bin</label>
+                                    <input class="form-control" id="adminCardBin" name="bin" type="text"
+                                        inputmode="numeric" maxlength="19" placeholder="414709">
+                                </div>
+                                <div class="col-md-6 col-xl-4">
+                                    <label class="form-label" for="adminCardBank">Bank</label>
+                                    <input class="form-control" id="adminCardBank" name="bank" type="text"
+                                        maxlength="80" placeholder="Bank">
+                                </div>
+                                <div class="col-md-3 col-xl-2">
+                                    <label class="form-label" for="adminCardClass">Class</label>
+                                    <select class="form-select" id="adminCardClass" name="cardClass">
+                                        <option>CREDIT</option>
+                                        <option>DEBIT</option>
+                                        <option>PREPAID</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-xl-2">
+                                    <label class="form-label" for="adminCardLevel">Level</label>
+                                    <select class="form-select" id="adminCardLevel" name="level">
+                                        <option>CLASSIC</option>
+                                        <option>GOLD</option>
+                                        <option>PLATINUM</option>
+                                        <option>SIGNATURE</option>
+                                        <option>STANDARD</option>
+                                        <option>WORLD</option>
+                                        <option>WORLD ELITE</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-xl-2">
+                                    <label class="form-label" for="adminCardExpiry">Expiry</label>
+                                    <input class="form-control" id="adminCardExpiry" name="expiry" type="text"
+                                        maxlength="12" placeholder="**/30">
+                                </div>
+                                <div class="col-md-5 col-xl-3">
+                                    <label class="form-label" for="adminCardCountry">Country</label>
+                                    <select class="form-select" id="adminCardCountry" name="country"></select>
+                                </div>
+                                <div class="col-md-4 col-xl-3">
+                                    <label class="form-label" for="adminCardState">State</label>
+                                    <input class="form-control" id="adminCardState" name="state" type="text"
+                                        maxlength="60" placeholder="All">
+                                </div>
+                                <div class="col-md-4 col-xl-3">
+                                    <label class="form-label" for="adminCardCity">City</label>
+                                    <input class="form-control" id="adminCardCity" name="city" type="text"
+                                        maxlength="60" placeholder="All">
+                                </div>
+                                <div class="col-md-3 col-xl-2">
+                                    <label class="form-label" for="adminCardZip">Zip</label>
+                                    <input class="form-control" id="adminCardZip" name="zip" type="text"
+                                        maxlength="16" placeholder="****">
+                                </div>
+                                <div class="col-md-6 col-xl-4">
+                                    <label class="form-label" for="adminCardDatabase">Database</label>
+                                    <input class="form-control" id="adminCardDatabase" name="database" type="text"
+                                        maxlength="80" placeholder="CARD_DB_414709_******">
+                                </div>
+                                <div class="col-md-3 col-xl-2">
+                                    <label class="form-label" for="adminCardSsn">SSN</label>
+                                    <select class="form-select" id="adminCardSsn" name="ssn">
+                                        <option>No</option>
+                                        <option>Yes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 col-xl-2">
+                                    <label class="form-label" for="adminCardDob">DOB</label>
+                                    <select class="form-select" id="adminCardDob" name="dob">
+                                        <option>No</option>
+                                        <option>Yes</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-xl-3">
+                                    <label class="form-label" for="adminCardVendor">Vendor</label>
+                                    <input class="form-control" id="adminCardVendor" name="vendor" type="text"
+                                        maxlength="80" placeholder="Vendor">
+                                </div>
+                                <div class="col-md-3 col-xl-2">
+                                    <label class="form-label" for="adminCardPrice">Price</label>
+                                    <input class="form-control" id="adminCardPrice" name="price" type="number"
+                                        min="0" max="9999" step="0.01" placeholder="0.00">
+                                </div>
+                                <div class="col-md-5 col-xl-3 d-flex align-items-end">
+                                    <div class="admin-card-logo-preview" id="adminCardLogoPreview">VISA</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2 mt-3">
+                                <button class="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
+                                    id="clearAdminCardForm" type="button">
+                                    <iconify-icon icon="mdi:eraser" width="18" height="18"></iconify-icon>
+                                    Clear
+                                </button>
+                                <button class="btn btn-dark d-inline-flex align-items-center gap-2" type="submit">
+                                    <iconify-icon icon="mdi:content-save-outline" width="18" height="18"></iconify-icon>
+                                    Save Card
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="admin-bulk-generator mt-4 pt-3 border-top">
+                            <div>
+                                <label class="form-label mb-1" for="bulkCardQuantity">Bulk Quantity</label>
+                                <small class="d-block text-muted">Generate 1 to 100000 inventory records in one batch.</small>
+                            </div>
+                            <div class="d-flex gap-2 align-items-end">
+                                <input class="form-control" id="bulkCardQuantity" type="number" min="1" max="100000" step="1" value="100">
+                                <button class="btn btn-primary d-inline-flex align-items-center gap-2" id="generateBulkCards" type="button">
+                                    <iconify-icon icon="mdi:lightning-bolt" width="18" height="18"></iconify-icon>
+                                    Generate Bulk Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Saved Card Records</span>
+                        <span class="badge bg-dark rounded-pill" id="adminCardsCount">0 cards</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 admin-cards-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Type</th>
+                                    <th scope="col">Bin</th>
+                                    <th scope="col">Bank</th>
+                                    <th scope="col">Class</th>
+                                    <th scope="col">Level</th>
+                                    <th scope="col">Expiry</th>
+                                    <th scope="col">Country</th>
+                                    <th scope="col">State</th>
+                                    <th scope="col">City</th>
+                                    <th scope="col">Zip</th>
+                                    <th scope="col">Database</th>
+                                    <th scope="col">SSN</th>
+                                    <th scope="col">DOB</th>
+                                    <th scope="col">Vendor</th>
+                                    <th scope="col">Price</th>
+                                    <th scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminCardsTableBody">
+                                <tr>
+                                    <td colspan="16" class="text-center text-muted py-5">Loading cards...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="admin-users-empty" id="adminCardsEmptyState" hidden>
+                        No saved card records yet.
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">User Virtual Cards</span>
+                        <span class="badge bg-dark rounded-pill" id="adminVirtualCardsCount">0 cards</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 admin-cards-table">
+                            <thead><tr><th>User ID / Email</th><th>Type</th><th>Cardholder</th><th>Card Number</th><th>Expiry</th><th>CVV</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="adminVirtualCardsTableBody"><tr><td colspan="9" class="text-center text-muted py-5">Loading virtual cards...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="purchasesSection" class="admin-cards-section py-4" data-admin-view-panel="purchases" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Purchases</h5>
+                        <p class="mb-0 text-muted">Manage completed order details shown to users.</p>
+                    </div>
+                    <button class="btn btn-dark" id="refreshAdminPurchases" type="button">Refresh</button>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>ID</th><th>User</th><th>Item</th><th>Category</th><th>Status</th><th>Total</th><th>Reference</th><th>Action</th></tr></thead>
+                            <tbody id="adminPurchasesTableBody"><tr><td colspan="8" class="text-center text-muted py-5">Loading purchases...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="ssnSection" class="admin-cards-section py-4" data-admin-view-panel="ssn" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">SSN Management</h5>
+                        <p class="mb-0 text-muted">Generate synthetic, masked records for the user SSN Shop.</p>
+                    </div>
+                    <a class="btn btn-dark d-inline-flex align-items-center gap-2" href="/dashboard/#ssn" target="_blank" rel="noreferrer">
+                        <iconify-icon icon="mdi:open-in-new" width="18" height="18"></iconify-icon>
+                        Open SSN Shop
+                    </a>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                        <div>
+                            <h6 class="mb-1">Bulk data generator</h6>
+                            <p class="mb-0 text-muted">Append 1,000 active synthetic records with randomized prices from $1 to $100.</p>
+                        </div>
+                        <button class="btn btn-primary d-inline-flex align-items-center gap-2" id="generateBulkSsn" type="button">
+                            <iconify-icon icon="mdi:database-plus-outline" width="18" height="18"></iconify-icon>
+                            Generate 1000 SSNs
+                        </button>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <span class="admin-content-status" id="adminSsnStatus" role="status" aria-live="polite">Ready</span>
+                    </div>
+                </div>
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-header bg-white d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                        <span class="fw-semibold">SSN Inventory</span>
+                        <span class="badge bg-dark rounded-pill" id="adminSsnCount">0 records</span>
+                    </div>
+                    <div class="card-body">
+                        <form class="row g-2" id="adminSsnFilterForm">
+                            <div class="col-md-7"><label class="visually-hidden" for="adminSsnSearch">Search inventory</label><input class="form-control" id="adminSsnSearch" name="q" type="search" placeholder="Search name, city, state, or ZIP"></div>
+                            <div class="col-md-3"><label class="visually-hidden" for="adminSsnStatusFilter">Status</label><select class="form-select" id="adminSsnStatusFilter" name="status"><option value="">All statuses</option><option value="available">Available</option><option value="sold">Sold</option></select></div>
+                            <div class="col-md-2"><button class="btn btn-outline-secondary w-100" type="submit">Filter</button></div>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 admin-ssn-table">
+                            <thead><tr><th>ID</th><th>First Name</th><th>Last Name</th><th>SSN</th><th>DOB</th><th>City</th><th>State</th><th>ZIP</th><th>Price</th><th>Status</th><th>Action</th></tr></thead>
+                            <tbody id="adminSsnTableBody"><tr><td colspan="11" class="text-center text-muted py-5">Loading SSN inventory...</td></tr></tbody>
+                        </table>
+                    </div>
+                    <div class="card-footer bg-white"><nav class="admin-ssn-pagination" id="adminSsnPagination" aria-label="Admin SSN pages"></nav></div>
+                </div>
+            </section>
+
+            <section id="profileSection" class="admin-profile-section py-4" data-admin-view-panel="profile" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Profile</h5>
+                        <p class="mb-0 text-muted">Admin account identity and current session details.</p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm admin-profile-card">
+                    <div class="card-body">
+                        <div class="admin-profile-header">
+                            <img src="/images/team1.jpg" alt="" width="72" height="72">
+                            <div>
+                                <span class="text-uppercase text-muted small fw-semibold">Administrator</span>
+                                <h6 class="mb-0" id="adminProfileUsername">admin</h6>
+                            </div>
+                        </div>
+                        <dl class="admin-detail-grid mb-0">
+                            <div>
+                                <dt>Role</dt>
+                                <dd id="adminProfileRole">admin</dd>
+                            </div>
+                            <div>
+                                <dt>Session Issued</dt>
+                                <dd id="adminProfileIssuedAt">Active</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm admin-profile-card mt-4">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Google Authenticator 2FA</span>
+                        <span class="text-muted" id="twoFactorStatus" role="status">Loading</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="twoFactorSettingsForm">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" id="twoFactorToggle" type="checkbox">
+                                <label class="form-check-label" for="twoFactorToggle">Require authenticator code at admin login</label>
+                            </div>
+                            <div id="twoFactorSetup" hidden>
+                                <p>Scan this QR code in Google Authenticator, then enter the current 6-digit code.</p>
+                                <img id="twoFactorQr" width="220" height="220" alt="Google Authenticator setup QR code">
+                                <p class="mt-3">Manual key: <strong id="twoFactorSecret"></strong></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="masterAdminKey">Master Admin Key</label>
+                                <input class="form-control" id="masterAdminKey" type="password" autocomplete="off" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label" for="twoFactorCode">Authenticator code</label>
+                                <input class="form-control" id="twoFactorCode" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required>
+                            </div>
+                            <button class="btn btn-primary" type="submit">Save 2FA settings</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="settingsSection" class="admin-settings-section py-4" data-admin-view-panel="settings" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Settings</h5>
+                        <p class="mb-0 text-muted">Admin session and control panel access state.</p>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm admin-profile-card">
+                    <div class="card-body">
+                        <dl class="admin-detail-grid">
+                            <div>
+                                <dt>Active Route</dt>
+                                <dd id="adminSettingsRoute">/admin/settings</dd>
+                            </div>
+                            <div>
+                                <dt>Session State</dt>
+                                <dd id="adminSettingsSession">Authenticated</dd>
+                            </div>
+                        </dl>
+                        <button class="btn btn-dark d-inline-flex align-items-center gap-2 admin-logout-button" type="button">
+                            <iconify-icon icon="mdi:logout-variant" width="18" height="18"></iconify-icon>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="paymentSection" class="admin-payment-section py-4" data-admin-view-panel="payment" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Payment Methods</h5>
+                        <p class="mb-0 text-muted">Manage the cryptocurrency gateways available for deposits.</p>
+                    </div>
+                    <button class="btn btn-primary" id="addPaymentMethod" type="button">Add gateway</button>
+                </div>
+                <div class="card card-bordered shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Payment Gateways</span>
+                        <span class="text-muted" id="paymentSettingsStatus" role="status">Loading</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="paymentSettingsForm" class="payment-settings-form">
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4"><label class="form-label" for="minimumDepositInput">Minimum deposit ($)</label><input class="form-control" id="minimumDepositInput" type="number" min="0" step="0.01"></div>
+                                <div class="col-md-4"><label class="form-label" for="paymentWindowInput">Payment window (minutes)</label><input class="form-control" id="paymentWindowInput" type="number" min="5" max="180"></div>
+                            </div>
+                            <div id="adminPaymentMethods" class="d-grid gap-3"></div>
+                            <div class="d-flex justify-content-end mt-4"><button class="btn btn-primary" type="submit">Save Settings</button></div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="requestsSection" class="admin-requests-section py-4" data-admin-view-panel="requests" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Deposit Requests</h5>
+                        <p class="mb-0 text-muted">Review pending user deposit submissions.</p>
+                    </div>
+                    <button class="btn btn-dark" id="refreshDeposits" type="button">Refresh</button>
+                </div>
+                <div class="card card-bordered shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-tranx align-middle mb-0">
+                            <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>TxID / Screenshot</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="adminDepositBody"><tr><td colspan="7" class="text-center text-muted py-5">Loading requests...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <div class="modal fade" id="virtualCardEditModal" tabindex="-1" aria-labelledby="virtualCardEditTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="virtualCardEditTitle">Edit Virtual Card</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <form id="virtualCardEditForm">
+                    <div class="modal-body"><div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Cardholder Name<input class="form-control" id="editVirtualCardName" name="name" required></label></div>
+                        <div class="col-md-6"><label class="form-label">Card Number<input class="form-control" id="editVirtualCardNumber" name="number" required></label></div>
+                        <div class="col-md-4"><label class="form-label">Expiry<input class="form-control" id="editVirtualCardExpiry" name="expiry" required></label></div>
+                        <div class="col-md-4"><label class="form-label">CVV<input class="form-control" id="editVirtualCardCvv" name="cvv" required></label></div>
+                        <div class="col-md-4"><label class="form-label">Status<select class="form-select" id="editVirtualCardStatus" name="status"><option>Active</option><option>Inactive</option><option>Blocked</option></select></label></div>
+                    </div><p class="text-danger small mt-3 mb-0" id="virtualCardEditStatus" role="status"></p></div>
+                    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-dark" type="submit">Save Changes</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="purchaseEditModal" tabindex="-1" aria-labelledby="purchaseEditTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="purchaseEditTitle">Edit Purchase Details</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <form id="purchaseEditForm">
+                    <div class="modal-body"><div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Item<input class="form-control" name="itemName" id="editPurchaseItemName" required></label></div>
+                        <div class="col-md-6"><label class="form-label">Reference<input class="form-control" name="reference" id="editPurchaseReference" required></label></div>
+                        <div class="col-md-4"><label class="form-label">Category<input class="form-control" name="category" id="editPurchaseCategory" required></label></div>
+                        <div class="col-md-4"><label class="form-label">Status<select class="form-select" name="status" id="editPurchaseStatus"><option>Completed</option><option>Pending</option><option>Refunded</option><option>Cancelled</option></select></label></div>
+                        <div class="col-md-4"><label class="form-label">Total<input class="form-control" name="amount" id="editPurchaseAmount" type="number" min="0" step="0.01" required></label></div>
+                        <div class="col-12"><label class="form-label">Note<textarea class="form-control" name="note" id="editPurchaseNote" rows="2"></textarea></label></div>
+                        <div class="col-12"><label class="form-label">Details<textarea class="form-control" name="details" id="editPurchaseDetails" rows="3"></textarea></label></div>
+                        <div class="col-12"><label class="form-label">Admin Note<textarea class="form-control" name="adminNote" id="editPurchaseAdminNote" rows="3"></textarea></label></div>
+                        <fieldset class="col-12" id="purchaseSsnDetailsFields" hidden>
+                            <legend class="fs-6">Record Details</legend>
+                            <div class="row g-3">
+                                <div class="col-md-4"><label class="form-label">First Name<input class="form-control" name="ssnFirstName"></label></div>
+                                <div class="col-md-4"><label class="form-label">Last Name<input class="form-control" name="ssnLastName"></label></div>
+                                <div class="col-md-4"><label class="form-label">Date of Birth<input class="form-control" name="ssnDob"></label></div>
+                                <div class="col-md-4"><label class="form-label">SSN Number<input class="form-control" name="ssnNumber"></label></div>
+                                <div class="col-md-4"><label class="form-label">City<input class="form-control" name="ssnCity"></label></div>
+                                <div class="col-md-2"><label class="form-label">State<input class="form-control" name="ssnState"></label></div>
+                                <div class="col-md-4"><label class="form-label">ZIP<input class="form-control" name="ssnZip"></label></div>
+                            </div>
+                        </fieldset>
+                    </div><p class="text-danger small mt-3 mb-0" id="purchaseEditStatus" role="status"></p></div>
+                    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-dark" type="submit">Save Changes</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="/js/script.js"></script>
+    <script type="text/javascript" src="/js/admin-users.js"></script>
+    <script src="https://code.iconify.design/3/3.0.1/iconify.min.js"></script>
+
+</body>
+
+</html>

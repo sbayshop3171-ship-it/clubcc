@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Admin Login | clubcc. Market</title>
+    <link rel="shortcut icon" href="/images/main-logo.png" type="image/png">
+    <link rel="stylesheet" href="/admin/login/login.css">
+    <script src="/admin/verify-2fa/verify-2fa.js" defer></script>
+</head>
+<body>
+    <main class="admin-login-shell">
+        <section class="admin-login-panel" aria-labelledby="verifyTitle">
+            <div class="admin-login-brand">
+                <img src="/images/main-logo.png" alt="clubcc. Market" width="168" height="52">
+            </div>
+            <div class="admin-login-copy">
+                <span class="admin-login-kicker">Two-step verification</span>
+                <h1 id="verifyTitle">Verify your login</h1>
+                <p>Enter the 6-digit code from Google Authenticator.</p>
+            </div>
+            <form class="admin-login-form" id="twoFactorForm" novalidate>
+                <label for="twoFactorCode">Authenticator code</label>
+                <input id="twoFactorCode" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus>
+                <button class="admin-login-button" id="twoFactorButton" type="submit">Verify code</button>
+                <p class="admin-login-status" id="twoFactorStatus" role="alert" aria-live="polite"></p>
+            </form>
+            <a class="admin-login-link" href="/admin/login">Return to admin login</a>
+        </section>
+    </main>
+</body>
+</html>

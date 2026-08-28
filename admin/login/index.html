@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | clubcc. Market</title>
+    <link rel="shortcut icon" href="/images/main-logo.png" type="image/png">
+    <link rel="stylesheet" href="/admin/login/login.css">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="/admin/login/login.js" defer></script>
+</head>
+
+<body>
+    <main class="admin-login-shell">
+        <section class="admin-login-panel" aria-labelledby="adminLoginTitle">
+            <div class="admin-login-brand">
+                <img src="/images/main-logo.png" alt="clubcc. Market" width="168" height="52">
+            </div>
+            <div class="admin-login-copy">
+                <span class="admin-login-kicker">Restricted access</span>
+                <h1 id="adminLoginTitle">Admin Login</h1>
+                <p>Sign in to the admin control panel.</p>
+            </div>
+
+            <form class="admin-login-form" id="adminLoginForm" autocomplete="off" novalidate>
+                <label for="adminUsername">Username</label>
+                <input id="adminUsername" name="username" type="text" inputmode="text" maxlength="32"
+                    autocomplete="username" required>
+
+                <label for="adminPassword">Password</label>
+                <input id="adminPassword" name="password" type="password" maxlength="64"
+                    autocomplete="current-password" required>
+
+                <button class="admin-login-button" id="adminLoginButton" type="submit">
+                    <iconify-icon icon="mdi:login-variant" width="18" height="18"></iconify-icon>
+                    Sign In
+                </button>
+
+                <p class="admin-login-status" id="adminLoginStatus" role="status" aria-live="polite"></p>
+            </form>
+
+            <a class="admin-login-link" href="/login/">Return to user login</a>
+        </section>
+    </main>
+</body>
+
+</html>
