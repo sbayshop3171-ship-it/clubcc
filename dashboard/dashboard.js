@@ -8,6 +8,10 @@
     const usernameEl = document.getElementById('sidebarUsername');
     const onlineCountEl = document.getElementById('onlineCount');
     const activityFeedEl = document.getElementById('activityFeed');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarCloseButton = document.getElementById('sidebarCloseButton');
+    const dashboardSidebar = document.getElementById('dashboardSidebar');
+    const dashboardBackdrop = document.getElementById('dashboardBackdrop');
     const fullscreenButton = document.getElementById('fullscreenToggle');
     const logoutButton = document.getElementById('logoutButton');
     const walletBalance = document.getElementById('walletBalance');
@@ -775,6 +779,29 @@
         window.location.replace('/login/');
     }
 
+    function isMobileSidebarViewport() {
+        return window.matchMedia('(max-width: 760px)').matches;
+    }
+
+    function setSidebarOpen(isOpen) {
+        if (!isMobileSidebarViewport()) {
+            document.body.classList.remove('sidebar-open');
+            sidebarToggle?.setAttribute('aria-expanded', 'false');
+            return;
+        }
+
+        document.body.classList.toggle('sidebar-open', isOpen);
+        sidebarToggle?.setAttribute('aria-expanded', String(isOpen));
+    }
+
+    function openSidebar() {
+        setSidebarOpen(true);
+    }
+
+    function closeSidebar() {
+        setSidebarOpen(false);
+    }
+
     async function apiRequest(path, options = {}) {
         const response = await fetch(`${API_BASE}${path}`, {
             ...options,
@@ -1003,6 +1030,7 @@
     function showDashboardView(viewName) {
         const activeView = ['cards', 'ssn', 'chicken', 'otp-bypass', 'tickets', 'cart', 'deposit', 'virtual-cards', 'purchases', 'purchases-ssn'].includes(viewName) ? viewName : 'news';
 
+        closeSidebar();
         document.body.classList.toggle('cards-view-active', activeView === 'cards');
 
         dashboardViews.forEach((view) => {
@@ -2491,6 +2519,31 @@
             showDashboardView(link.dataset.viewLink);
         });
     });
+    sidebarToggle?.addEventListener('click', () => {
+        if (document.body.classList.contains('sidebar-open')) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
+    sidebarCloseButton?.addEventListener('click', closeSidebar);
+    dashboardBackdrop?.addEventListener('click', closeSidebar);
+    dashboardSidebar?.addEventListener('click', (event) => {
+        if (event.target.closest('a[href]')) {
+            closeSidebar();
+        }
+    });
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeSidebar();
+        }
+    });
+    window.addEventListener('resize', () => {
+        if (!isMobileSidebarViewport()) {
+            closeSidebar();
+        }
+    });
+    closeSidebar();
     window.addEventListener('hashchange', () => {
         const view = viewFromHash();
 

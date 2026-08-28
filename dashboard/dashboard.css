@@ -79,7 +79,9 @@ a {
 }
 
 .dashboard-shell {
+    position: relative;
     min-height: 100vh;
+    overflow-x: clip;
 }
 
 .card,
@@ -102,11 +104,39 @@ a {
     display: flex;
     flex-direction: column;
     padding: 18px 16px 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     background: var(--glass-bg);
     box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
+}
+
+.sidebar-mobile-bar {
+    display: none;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+}
+
+.sidebar-close-button {
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #eef6fb;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-close-button:hover,
+.sidebar-close-button:focus-visible {
+    outline: 0;
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .profile-card {
@@ -161,7 +191,7 @@ a {
 
 .nav-item {
     width: 100%;
-    min-height: 38px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     gap: 13px;
@@ -224,7 +254,8 @@ a {
     align-items: center;
     gap: 9px;
     margin: 0 0 16px;
-    padding: 9px 10px;
+    min-height: 44px;
+    padding: 0 10px;
     color: var(--text);
     font-size: 13px;
     font-weight: 700;
@@ -240,7 +271,7 @@ a {
 }
 
 .earn-button {
-    min-height: 42px;
+    min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -297,13 +328,35 @@ a {
 }
 
 .dashboard-main {
-    height: 100vh;
-    min-height: 100vh;
+    position: relative;
+    height: 100dvh;
+    min-height: 100dvh;
     margin-left: var(--sidebar-width);
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 180ms ease;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.topbar-primary {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mobile-menu-button {
+    display: none;
 }
 
 .topbar {
@@ -345,6 +398,14 @@ a {
     border-radius: 50%;
     background: linear-gradient(135deg, #f4f8fb, #a9c4d2);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.28);
+}
+
+.brand-image {
+    display: block;
+    width: 132px;
+    height: 52px;
+    object-fit: contain;
+    object-position: left center;
 }
 
 .topbar-actions {
@@ -2290,9 +2351,10 @@ body.cards-view-active .cards-table tr:hover td {
 
 .table-scroll {
     width: 100%;
-    overflow-x: visible;
-    overflow-y: visible;
+    overflow-x: auto;
+    overflow-y: hidden;
     touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
 }
 
 .card-pagination {
@@ -2342,6 +2404,7 @@ body.cards-view-active .cards-table tr:hover td {
     cursor: default;
     opacity: 0.38;
 }
+
 
 .card-pagination-gap {
     padding: 0 2px;
@@ -2748,9 +2811,25 @@ body.cards-view-active .cards-table tr:hover td {
 
 @media (max-width: 760px) {
     .dashboard-sidebar {
-        position: relative;
-        width: 100%;
-        min-height: auto;
+        width: min(88vw, 320px);
+        transform: translateX(-100%);
+        transition: transform 220ms ease;
+        box-shadow:
+            0 0 0 1px rgba(255, 255, 255, 0.04),
+            18px 0 40px rgba(0, 0, 0, 0.48);
+    }
+
+    body.sidebar-open {
+        overflow: hidden;
+    }
+
+    body.sidebar-open .dashboard-sidebar {
+        transform: translateX(0);
+    }
+
+    body.sidebar-open .dashboard-backdrop {
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .dashboard-main {
@@ -2758,9 +2837,26 @@ body.cards-view-active .cards-table tr:hover td {
     }
 
     .topbar {
-        position: relative;
         flex-wrap: wrap;
-        padding: 14px 16px;
+        min-height: auto;
+        padding: 12px 14px;
+        gap: 12px;
+    }
+
+    .topbar-primary {
+        width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .mobile-menu-button {
+        display: inline-flex;
+        flex: 0 0 auto;
+    }
+
+    .icon-button,
+    .wallet-badge {
+        min-width: 44px;
+        min-height: 44px;
     }
 
     .admin-header,
@@ -2778,6 +2874,7 @@ body.cards-view-active .cards-table tr:hover td {
     }
 
     .brand {
+        min-width: 0;
         font-size: 18px;
     }
 
@@ -2789,24 +2886,35 @@ body.cards-view-active .cards-table tr:hover td {
     }
 
     .topbar-actions .wallet-badge {
-        min-width: 58px;
-        padding: 0 9px;
+        min-width: 44px;
+        padding: 0 12px;
         font-size: 13px;
     }
 
     .content-wrap {
-        padding: 28px 16px 40px;
+        padding: 22px 14px 40px;
     }
 
     .content-wrap h1 {
-        font-size: 30px;
+        font-size: 28px;
     }
 
     .activity-card,
     .info-card,
-    .ticker-admin-card {
-        padding-right: 18px;
-        padding-left: 18px;
+    .ticker-admin-card,
+    .market-filter-panel,
+    .market-results,
+    .checker-panel,
+    .checker-results,
+    .ticket-create-panel,
+    .ticket-history-panel,
+    .ticket-detail-panel,
+    .deposit-panel,
+    .deposit-history,
+    .virtual-card-workspace,
+    .virtual-card-history {
+        padding-right: 16px;
+        padding-left: 16px;
     }
 
     .online-badge {
@@ -2825,6 +2933,34 @@ body.cards-view-active .cards-table tr:hover td {
         grid-template-columns: 1fr;
     }
 
+    .section-heading,
+    .results-toolbar,
+    .deposit-payment-heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .results-toolbar span {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .payment-tabs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+
+    .payment-tab {
+        min-height: 44px;
+        width: 100%;
+    }
+
+    .price-presets button {
+        min-height: 44px;
+    }
+
     .checker-panel,
     .checker-results {
         padding-right: 16px;
@@ -2832,12 +2968,15 @@ body.cards-view-active .cards-table tr:hover td {
     }
 
     .checker-actions {
+        flex-direction: column;
         justify-content: stretch;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
 
     .checker-action {
-        flex: 1 1 140px;
+        width: 100%;
+        flex: 1 1 auto;
+        min-height: 44px;
     }
 
     .card-pagination {
@@ -2855,6 +2994,22 @@ body.cards-view-active .cards-table tr:hover td {
         table-layout: auto;
     }
 
+    .card-page-button {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0 12px;
+    }
+
+    .action-button {
+        min-height: 44px;
+    }
+
+    .wallet-dropdown a,
+    .wallet-dropdown button {
+        min-height: 44px;
+        padding: 0 12px;
+    }
+
     .price-filter {
         grid-column: auto;
     }
@@ -2869,8 +3024,100 @@ body.cards-view-active .cards-table tr:hover td {
         grid-template-columns: 1fr;
     }
 
+    .copy-field {
+        grid-template-columns: 1fr;
+    }
+
+    .copy-field .admin-button {
+        width: 100%;
+    }
+
     .deposit-qr {
         justify-self: center;
+    }
+
+    .ticket-list-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .ticket-status-badge {
+        align-self: flex-start;
+    }
+
+    .ticket-meta {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .ticket-message,
+    .admin-ticket-message {
+        max-width: 100%;
+    }
+
+    .purchase-details-list div {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .purchase-details-list dd {
+        text-align: left;
+    }
+
+    .virtual-card-preview {
+        min-height: 220px;
+        padding: 20px;
+    }
+
+    .virtual-card-preview-top,
+    .virtual-card-preview-bottom {
+        flex-wrap: wrap;
+    }
+
+    .virtual-card-number {
+        font-size: 16px;
+        letter-spacing: 0.03em;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .virtual-card-name {
+        max-width: 100%;
+        margin-left: 0;
+    }
+
+    .nav-submenu {
+        margin: -2px 0 10px;
+        padding-left: 12px;
+        border-left: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-submenu a {
+        min-height: 44px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        border-radius: 4px;
+    }
+
+    .sidebar-mobile-bar {
+        display: flex;
+    }
+
+    .sidebar-nav {
+        margin-top: 18px;
+    }
+
+    .dashboard-footer {
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .info-card p,
+    .link-list li,
+    .ticket-message p,
+    .admin-ticket-message p {
+        overflow-wrap: anywhere;
     }
 
     .virtual-card-workspace {
@@ -2880,12 +3127,14 @@ body.cards-view-active .cards-table tr:hover td {
 
     .virtual-card-preview {
         min-height: 220px;
-        padding: 22px;
+        padding: 20px;
     }
 
     .virtual-card-number {
-        font-size: 18px;
-        letter-spacing: 0.04em;
+        font-size: 16px;
+        letter-spacing: 0.03em;
+        white-space: normal;
+        overflow-wrap: anywhere;
     }
 
     .deposit-panel,
@@ -2901,5 +3150,6 @@ body.cards-view-active .cards-table tr:hover td {
 
     .admin-button {
         width: 100%;
+        min-height: 44px;
     }
 }

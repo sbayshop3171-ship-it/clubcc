@@ -14,9 +14,14 @@
 
 <body>
     <div class="dashboard-shell">
-        <aside class="dashboard-sidebar" aria-label="Dashboard navigation">
+        <aside class="dashboard-sidebar" id="dashboardSidebar" aria-label="Dashboard navigation">
+            <div class="sidebar-mobile-bar">
+                <button class="sidebar-close-button" id="sidebarCloseButton" type="button" aria-label="Close navigation">
+                    <iconify-icon icon="mdi:close" width="22" height="22"></iconify-icon>
+                </button>
+            </div>
             <section class="profile-card glass-card">
-                <img class="profile-avatar" src="/images/team1.jpg" alt="">
+                <img class="profile-avatar" src="/images/man-logo.png" alt="">
                 <div class="profile-meta">
                     <strong id="sidebarUsername">Loading...</strong>
                     <span>User</span>
@@ -98,13 +103,18 @@
                 <a class="earn-button" href="#">Earn money</a>
             </div>
         </aside>
+        <div class="dashboard-backdrop" id="dashboardBackdrop" aria-hidden="true"></div>
 
         <main class="dashboard-main">
             <header class="topbar glass-panel">
-                <a class="brand" href="/dashboard/">
-                    <span class="brand-mark">DL</span>
-                    <span>clubcc. Market</span>
-                </a>
+                <div class="topbar-primary">
+                    <button class="icon-button mobile-menu-button" id="sidebarToggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="dashboardSidebar">
+                        <iconify-icon icon="mdi:menu" width="22" height="22"></iconify-icon>
+                    </button>
+                    <a class="brand" href="/dashboard/">
+                        <img class="brand-image" src="/images/benner-logo.png" alt="clubcc. Market">
+                    </a>
+                </div>
 
                 <div class="topbar-actions">
                     <button class="icon-button" type="button" aria-label="Messages">
