@@ -1,5 +1,7 @@
 # clubcc
 
+[![CI](https://github.com/sbayshop3171-ship-it/clubcc/actions/workflows/ci.yml/badge.svg)](https://github.com/sbayshop3171-ship-it/clubcc/actions/workflows/ci.yml)
+
 Local Node.js dashboard project.
 
 ## Run locally

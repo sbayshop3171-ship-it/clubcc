@@ -5,8 +5,10 @@
   "description": "clubcc market dashboard",
   "main": "server.js",
   "scripts": {
+    "check": "node scripts/check-js.js",
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "test": "node scripts/smoke-test.js"
   },
   "engines": {
     "node": ">=18"
