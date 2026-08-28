@@ -339,9 +339,14 @@
         card.setAttribute('aria-label', isRegister ? 'Create account' : 'Login');
         document.title = isRegister ? 'Create Account | clubcc. Market' : 'Login | clubcc. Market';
 
-        const header = isRegister
-            ? '<div class="profile-icon" aria-hidden="true"></div><h1>Create an account</h1>'
-            : '<h1>Welcome back</h1><a class="login-logo" href="/dashboard/" aria-label="CLUBCC home"><img src="/images/clubcc-logo.png" alt="CLUBCC"></a><div class="alert-banner" data-status role="alert">Secure access only</div>';
+        const actionLabel = isRegister ? 'CREATE ACCOUNT' : 'LOGIN';
+        const header = `
+            <a class="login-logo" href="/dashboard/" aria-label="CLUBCC home"><img src="/images/clubcc-logo.png" alt="CLUBCC"></a>
+            <div class="auth-brand-lockup" aria-label="CLUB CC Market">
+                <span class="auth-brand-name">CLUB CC</span>
+                <span class="auth-brand-subtitle">MARKET</span>
+            </div>
+            <div class="alert-banner" data-status role="alert">${isRegister ? 'Create secure account' : 'Secure access only'}</div>`;
         const usernameValue = isRegister ? '' : escapeHtml(state.prefillUsername);
 
         card.innerHTML = `
@@ -349,7 +354,10 @@
                 ${header}
                 <form class="login-form" data-auth-form autocomplete="off" novalidate>
                     <label class="sr-only" for="authUsername">Username</label>
-                    <input class="form-field is-active" id="authUsername" name="username" type="text" placeholder="Username" autocomplete="username" value="${usernameValue}">
+                    <div class="field-with-icon user-field">
+                        <input class="form-field is-active" id="authUsername" name="username" type="text" placeholder="Username" autocomplete="username" value="${usernameValue}">
+                        <span class="user-icon" aria-hidden="true"></span>
+                    </div>
 
                     <label class="sr-only" for="authPassword">Password</label>
                     <div class="field-with-icon">
@@ -367,8 +375,8 @@
 
                     <p class="form-message" data-form-message role="alert" aria-live="polite"></p>
 
-                    <button class="submit-button" data-submit-button type="submit" aria-label="Submit">
-                        <span class="check-icon" aria-hidden="true"></span>
+                    <button class="submit-button" data-submit-button type="submit">
+                        <span class="submit-label">${actionLabel}</span>
                     </button>
                 </form>
                 <a class="create-account" href="${isRegister ? ROUTES.login : ROUTES.register}" data-auth-toggle="${isRegister ? 'login' : 'register'}">
