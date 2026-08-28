@@ -48,6 +48,7 @@ const DEFAULT_SUB_SETTINGS = { price: 150 };
 const CAPTCHA_TTL_MS = 5 * 60 * 1000;
 const CAPTCHA_MAX_CHALLENGES = 1000;
 const CAPTCHA_SECRET = crypto.randomBytes(32);
+const ADMIN_SESSION_TTL_MS = 4 * 60 * 1000;
 const ADMIN_USERNAME = 'admin';
 const ADMIN_ISSUER = 'clubcc. Market';
 const MASTER_ADMIN_KEY = process.env.MASTER_ADMIN_KEY || '';
@@ -1628,13 +1629,15 @@ function getSessionFromRequest(req) {
 
 function createAdminSession() {
     const token = crypto.randomBytes(32).toString('hex');
+    const issuedAtMs = Date.now();
     const session = {
         token,
         user: {
             username: 'admin',
             role: 'admin'
         },
-        issuedAt: new Date().toISOString()
+        issuedAt: new Date(issuedAtMs).toISOString(),
+        expiresAt: new Date(issuedAtMs + ADMIN_SESSION_TTL_MS).toISOString()
     };
 
     adminSessions.set(token, session);
@@ -1740,8 +1743,23 @@ function requireMasterAdminKey(body, res) {
 function getAdminSessionFromRequest(req) {
     const auth = req.headers.authorization || '';
     const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+    const session = token ? adminSessions.get(token) : null;
 
-    return token ? adminSessions.get(token) : null;
+    if (!session) {
+        return null;
+    }
+
+    const expiresAt = Date.parse(session.expiresAt);
+    const issuedAt = Date.parse(session.issuedAt);
+    const fallbackExpiresAt = Number.isFinite(issuedAt) ? issuedAt + ADMIN_SESSION_TTL_MS : 0;
+    const sessionExpiresAt = Number.isFinite(expiresAt) ? expiresAt : fallbackExpiresAt;
+
+    if (!sessionExpiresAt || sessionExpiresAt <= Date.now()) {
+        adminSessions.delete(token);
+        return null;
+    }
+
+    return session;
 }
 
 function destroyAdminSessionFromRequest(req) {

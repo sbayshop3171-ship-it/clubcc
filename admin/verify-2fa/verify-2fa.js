@@ -1,6 +1,7 @@
 (function () {
     const SESSION_KEY = 'dashlite.admin.session';
     const CHALLENGE_KEY = 'dashlite.admin.2fa.challenge';
+    const sessionTimeout = window.AdminSessionTimeout;
     const form = document.getElementById('twoFactorForm');
     const codeInput = document.getElementById('twoFactorCode');
     const submitButton = document.getElementById('twoFactorButton');
@@ -46,7 +47,11 @@
             }
 
             sessionStorage.removeItem(CHALLENGE_KEY);
-            sessionStorage.setItem(SESSION_KEY, JSON.stringify(data.session));
+            if (sessionTimeout) {
+                sessionTimeout.saveSession(data.session);
+            } else {
+                sessionStorage.setItem(SESSION_KEY, JSON.stringify(data.session));
+            }
             setStatus('Verified', 'success');
             window.location.replace('/admin');
         } catch (error) {
@@ -56,7 +61,11 @@
         }
     }
 
-    if (sessionStorage.getItem(SESSION_KEY)) {
+    const existingSession = sessionTimeout
+        ? sessionTimeout.getSession()
+        : sessionStorage.getItem(SESSION_KEY);
+
+    if (existingSession) {
         window.location.replace('/admin');
         return;
     }

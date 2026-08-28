@@ -1,6 +1,8 @@
 (function () {
     const SESSION_KEY = 'dashlite.admin.session';
     const API_BASE = '/api';
+    const sessionTimeout = window.AdminSessionTimeout;
+    sessionTimeout?.startAutoTimeout();
 
     const logoutButton = document.getElementById('logoutButton');
     const settingsStatus = document.getElementById('settingsStatus');
@@ -39,6 +41,10 @@
     let pendingTwoFactorSecret = '';
 
     function getStoredSession() {
+        if (sessionTimeout) {
+            return sessionTimeout.getSession();
+        }
+
         const raw = sessionStorage.getItem(SESSION_KEY);
 
         if (!raw) {
@@ -54,6 +60,11 @@
     }
 
     function redirectToLogin() {
+        if (sessionTimeout) {
+            sessionTimeout.redirectToLogin();
+            return;
+        }
+
         sessionStorage.removeItem(SESSION_KEY);
         window.location.replace('/admin/login');
     }
@@ -80,7 +91,11 @@
         const data = await response.json().catch(() => ({}));
 
         if (response.status === 401) {
-            redirectToLogin();
+            if (sessionTimeout) {
+                sessionTimeout.handleUnauthorized();
+            } else {
+                redirectToLogin();
+            }
             throw new Error('Session expired');
         }
 
@@ -534,8 +549,13 @@
         }
     });
     logoutButton.addEventListener('click', () => {
+        if (sessionTimeout) {
+            sessionTimeout.logout('/api/admin/logout');
+            return;
+        }
+
         sessionStorage.removeItem(SESSION_KEY);
-        window.location.replace('/login/');
+        window.location.replace('/admin/login');
     });
 
     loadSettings();

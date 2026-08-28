@@ -1,5 +1,7 @@
 (function () {
     const SESSION_KEY = 'dashlite.admin.session';
+    const sessionTimeout = window.AdminSessionTimeout;
+    sessionTimeout?.startAutoTimeout();
     const methodsElement = document.getElementById('adminPaymentMethods');
     const settingsForm = document.getElementById('paymentSettingsForm');
     const minimumAmount = document.getElementById('minimumDepositInput');
@@ -11,10 +13,19 @@
     const paymentViewLinks = document.querySelectorAll('[data-payment-view]');
 
     function session() {
+        if (sessionTimeout) {
+            return sessionTimeout.getSession();
+        }
+
         try { return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); } catch (error) { return null; }
     }
 
     function redirectToLogin() {
+        if (sessionTimeout) {
+            sessionTimeout.redirectToLogin();
+            return;
+        }
+
         sessionStorage.removeItem(SESSION_KEY);
         window.location.replace('/admin/login');
     }
@@ -27,7 +38,11 @@
         const activeSession = session();
         const response = await fetch(`/api${path}`, { ...options, headers: { Accept: 'application/json', Authorization: `Bearer ${activeSession?.token || ''}`, ...(options.headers || {}) } });
         const data = await response.json().catch(() => ({}));
-        if (response.status === 401) { redirectToLogin(); throw new Error('Admin authentication required'); }
+        if (response.status === 401) {
+            if (sessionTimeout) sessionTimeout.handleUnauthorized();
+            else redirectToLogin();
+            throw new Error('Admin authentication required');
+        }
         if (!response.ok || data.ok === false) throw new Error(data.error || 'Request failed');
         return data;
     }
@@ -114,7 +129,14 @@
     methodsElement.addEventListener('click', (event) => { if (event.target.closest('.remove-payment-method')) event.target.closest('.admin-payment-method').remove(); });
     methodsElement.addEventListener('change', (event) => { const input = event.target.closest('[data-upload]'); if (!input?.files[0]) return; const reader = new FileReader(); reader.addEventListener('load', () => { input.closest('.admin-payment-method').querySelector('[data-field="qrImage"]').value = reader.result; }); reader.readAsDataURL(input.files[0]); });
     requestBody.addEventListener('click', async (event) => { const button = event.target.closest('[data-action]'); if (!button) return; const note = window.prompt(button.dataset.action === 'reject' ? 'Rejection note (optional)' : 'Approval note (optional)', '') ?? ''; button.disabled = true; try { await api(`/admin/deposits/${button.dataset.depositId}/${button.dataset.action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note }) }); await loadRequests(); } catch (error) { window.alert(error.message); button.disabled = false; } });
-    document.getElementById('logoutButton').addEventListener('click', redirectToLogin);
+    document.getElementById('logoutButton').addEventListener('click', () => {
+        if (sessionTimeout) {
+            sessionTimeout.logout('/api/admin/logout');
+            return;
+        }
+
+        redirectToLogin();
+    });
     loadSettings();
     loadRequests();
 }());

@@ -1,5 +1,7 @@
 (function () {
     const SESSION_KEY = 'dashlite.admin.session';
+    const sessionTimeout = window.AdminSessionTimeout;
+    sessionTimeout?.startAutoTimeout();
     const ADMIN_ROUTE_PATHS = {
         dashboard: '/admin',
         users: '/admin/users',
@@ -132,6 +134,10 @@
     let adminSsnPage = 1;
 
     function getAdminSession() {
+        if (sessionTimeout) {
+            return sessionTimeout.getSession();
+        }
+
         try {
             return JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
         } catch (error) {
@@ -149,6 +155,11 @@
     }
 
     function redirectToAdminLogin() {
+        if (sessionTimeout) {
+            sessionTimeout.redirectToLogin();
+            return;
+        }
+
         sessionStorage.removeItem(SESSION_KEY);
         window.location.replace('/admin/login');
     }
@@ -174,7 +185,11 @@
         }
 
         if (response.status === 401) {
-            redirectToAdminLogin();
+            if (sessionTimeout) {
+                sessionTimeout.handleUnauthorized();
+            } else {
+                redirectToAdminLogin();
+            }
             throw new Error('Admin authentication required');
         }
 
@@ -186,6 +201,11 @@
     }
 
     async function destroyAdminSession() {
+        if (sessionTimeout) {
+            await sessionTimeout.logout('/api/admin/logout');
+            return;
+        }
+
         const session = getAdminSession();
 
         if (session?.token) {
