@@ -42,6 +42,9 @@
     const paymentWindowInput = document.getElementById('paymentWindowInput');
     const paymentSettingsStatus = document.getElementById('paymentSettingsStatus');
     const addPaymentMethod = document.getElementById('addPaymentMethod');
+    const paymentMasterAdminKey = document.getElementById('paymentMasterAdminKey');
+    const unlockPaymentSettings = document.getElementById('unlockPaymentSettings');
+    let paymentSettingsUnlocked = false;
     const adminDepositBody = document.getElementById('adminDepositBody');
     const refreshDeposits = document.getElementById('refreshDeposits');
     const adminTopbarName = document.getElementById('adminTopbarName');
@@ -56,7 +59,7 @@
     const twoFactorQr = document.getElementById('twoFactorQr');
     const twoFactorSecret = document.getElementById('twoFactorSecret');
     const twoFactorCode = document.getElementById('twoFactorCode');
-    const masterAdminKey = document.getElementById('masterAdminKey');
+    const twoFactorMasterAdminKey = document.getElementById('twoFactorMasterAdminKey');
     const twoFactorStatus = document.getElementById('twoFactorStatus');
     let pendingTwoFactorSecret = '';
     let currentTwoFactorEnabled = false;
@@ -460,13 +463,13 @@
     }
 
     async function prepareTwoFactorSetup() {
-        if (!masterAdminKey.value.trim()) {
+        if (!twoFactorMasterAdminKey.value.trim()) {
             throw new Error('Master Admin Key is required.');
         }
         const data = await adminJson(await fetch('/api/admin/2fa/setup', {
             method: 'POST',
             headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ masterAdminKey: masterAdminKey.value.trim() })
+            body: JSON.stringify({ masterAdminKey: twoFactorMasterAdminKey.value.trim() })
         }), 'Unable to prepare 2FA');
         pendingTwoFactorSecret = data.secret;
         twoFactorSecret.textContent = data.secret;
@@ -483,7 +486,7 @@
                 const response = await fetch('/api/admin/2fa/enable', {
                     method: 'POST',
                     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ secret: pendingTwoFactorSecret, code: twoFactorCode.value.trim(), masterAdminKey: masterAdminKey.value.trim() })
+                    body: JSON.stringify({ secret: pendingTwoFactorSecret, code: twoFactorCode.value.trim(), masterAdminKey: twoFactorMasterAdminKey.value.trim() })
                 });
                 const data = await adminJson(response, 'Unable to enable 2FA');
                 twoFactorSetup.hidden = true;
@@ -494,7 +497,7 @@
                 const response = await fetch('/api/admin/2fa/disable', {
                     method: 'POST',
                     headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: twoFactorCode.value.trim(), masterAdminKey: masterAdminKey.value.trim() })
+                    body: JSON.stringify({ code: twoFactorCode.value.trim(), masterAdminKey: twoFactorMasterAdminKey.value.trim() })
                 });
                 const data = await adminJson(response, 'Unable to disable 2FA');
                 twoFactorCode.value = '';
@@ -1219,6 +1222,29 @@
         paymentSettingsStatus.className = `text-muted${type === 'error' ? ' text-danger' : type === 'success' ? ' text-success' : ''}`;
     }
 
+    function paymentLockAttribute() {
+        return paymentSettingsUnlocked ? 'data-payment-lock' : 'data-payment-lock disabled';
+    }
+
+    function setPaymentLocked(locked) {
+        paymentSettingsUnlocked = !locked;
+
+        paymentSection?.querySelectorAll('[data-payment-lock]').forEach((element) => {
+            element.disabled = locked;
+        });
+    }
+
+    function requirePaymentMasterKey() {
+        const key = paymentMasterAdminKey?.value.trim() || '';
+
+        if (!key) {
+            setPaymentStatus('Enter the Master Admin Key.', 'error');
+            return '';
+        }
+
+        return key;
+    }
+
     function setCheckerStatus(message, type = '') {
         checkerSettingsStatus.textContent = message;
         checkerSettingsStatus.className = `admin-content-status${type === 'error' ? ' text-danger' : type === 'success' ? ' text-success' : ''}`;
@@ -1390,17 +1416,17 @@
             <fieldset class="admin-payment-method border rounded p-3">
                 <legend class="float-none w-auto px-2 fs-6">Gateway ${index + 1}</legend>
                 <div class="row g-3">
-                    <div class="col-md-3"><label class="form-label">Coin name</label><input class="form-control" data-field="name" value="${escapeHtml(method.name)}" required></div>
-                    <div class="col-md-2"><label class="form-label">Symbol</label><input class="form-control" data-field="symbol" value="${escapeHtml(method.symbol)}" required></div>
-                    <div class="col-md-3"><label class="form-label">Network</label><input class="form-control" data-field="network" value="${escapeHtml(method.network || '')}"></div>
-                    <div class="col-md-4"><label class="form-label">Wallet address</label><input class="form-control" data-field="address" value="${escapeHtml(method.address)}" required></div>
-                    <div class="col-md-5"><label class="form-label">QR code image URL</label><input class="form-control" data-field="qrImage" value="${escapeHtml(method.qrImage)}"></div>
-                    <div class="col-md-4"><label class="form-label">Network note</label><input class="form-control" data-field="networkNote" value="${escapeHtml(method.networkNote)}"></div>
-                    <div class="col-md-3"><label class="form-label">Upload QR code</label><input class="form-control" type="file" accept="image/*" data-upload></div>
+                    <div class="col-md-3"><label class="form-label">Coin name</label><input class="form-control" data-field="name" value="${escapeHtml(method.name)}" required ${paymentLockAttribute()}></div>
+                    <div class="col-md-2"><label class="form-label">Symbol</label><input class="form-control" data-field="symbol" value="${escapeHtml(method.symbol)}" required ${paymentLockAttribute()}></div>
+                    <div class="col-md-3"><label class="form-label">Network</label><input class="form-control" data-field="network" value="${escapeHtml(method.network || '')}" ${paymentLockAttribute()}></div>
+                    <div class="col-md-4"><label class="form-label">Wallet address</label><input class="form-control" data-field="address" value="${escapeHtml(method.address)}" required ${paymentLockAttribute()}></div>
+                    <div class="col-md-5"><label class="form-label">QR code image URL</label><input class="form-control" data-field="qrImage" value="${escapeHtml(method.qrImage)}" ${paymentLockAttribute()}></div>
+                    <div class="col-md-4"><label class="form-label">Network note</label><input class="form-control" data-field="networkNote" value="${escapeHtml(method.networkNote)}" ${paymentLockAttribute()}></div>
+                    <div class="col-md-3"><label class="form-label">Upload QR code</label><input class="form-control" type="file" accept="image/*" data-upload ${paymentLockAttribute()}></div>
                 </div>
                 <input type="hidden" data-field="id" value="${escapeHtml(method.id)}">
                 <input type="hidden" data-field="active" value="${method.active !== false ? 'true' : 'false'}">
-                <button class="btn btn-danger mt-3 remove-payment-method" type="button">Remove</button>
+                <button class="btn btn-danger mt-3 remove-payment-method" type="button" ${paymentLockAttribute()}>Remove</button>
             </fieldset>`).join('');
     }
 
@@ -1419,8 +1445,9 @@
             const data = await adminJson(await fetch('/api/admin/deposit-settings', { headers: authHeaders() }), 'Unable to load payment settings');
             minimumDepositInput.value = data.settings.minimumAmount;
             paymentWindowInput.value = data.settings.paymentWindowMinutes;
+            setPaymentLocked(true);
             renderPaymentMethods(data.settings.methods || []);
-            setPaymentStatus('Synced', 'success');
+            setPaymentStatus('Locked');
         } catch (error) {
             setPaymentStatus(error.message, 'error');
         }
@@ -1428,17 +1455,60 @@
 
     async function savePaymentSettings(event) {
         event.preventDefault();
+        if (!paymentSettingsUnlocked) {
+            setPaymentStatus('Unlock with Master Key before editing.', 'error');
+            return;
+        }
+
+        const masterAdminKey = requirePaymentMasterKey();
+        if (!masterAdminKey) {
+            return;
+        }
+
         setPaymentStatus('Saving');
         try {
             const response = await fetch('/api/admin/deposit-settings', {
                 method: 'PUT',
                 headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ minimumAmount: Number(minimumDepositInput.value), paymentWindowMinutes: Number(paymentWindowInput.value), methods: collectPaymentMethods() })
+                body: JSON.stringify({
+                    minimumAmount: Number(minimumDepositInput.value),
+                    paymentWindowMinutes: Number(paymentWindowInput.value),
+                    methods: collectPaymentMethods(),
+                    masterAdminKey
+                })
             });
             await adminJson(response, 'Unable to save payment settings');
             setPaymentStatus('Saved', 'success');
+            paymentMasterAdminKey.value = '';
+            setPaymentLocked(true);
         } catch (error) {
-            setPaymentStatus(error.message, 'error');
+            setPaymentLocked(true);
+            setPaymentStatus(error.message === 'Unauthorized. Invalid Admin Key.' ? 'Incorrect Master Key. Form remains locked.' : error.message, 'error');
+        }
+    }
+
+    async function unlockPaymentSettingsWithMasterKey() {
+        const masterAdminKey = requirePaymentMasterKey();
+
+        if (!masterAdminKey) {
+            setPaymentLocked(true);
+            return;
+        }
+
+        setPaymentStatus('Checking Master Key');
+
+        try {
+            const response = await fetch('/api/admin/payment/unlock', {
+                method: 'POST',
+                headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ masterAdminKey })
+            });
+            await adminJson(response, 'Unable to unlock payment settings');
+            setPaymentLocked(false);
+            setPaymentStatus('Unlocked', 'success');
+        } catch (error) {
+            setPaymentLocked(true);
+            setPaymentStatus('Incorrect Master Key. Form remains locked.', 'error');
         }
     }
 
@@ -1555,9 +1625,10 @@
     });
     adminCardForm?.addEventListener('submit', saveCard);
     paymentSettingsForm?.addEventListener('submit', savePaymentSettings);
+    unlockPaymentSettings?.addEventListener('click', unlockPaymentSettingsWithMasterKey);
     twoFactorSettingsForm?.addEventListener('submit', saveTwoFactorSettings);
     twoFactorToggle?.addEventListener('change', () => {
-        if (!masterAdminKey.value.trim()) {
+        if (!twoFactorMasterAdminKey.value.trim()) {
             twoFactorToggle.checked = currentTwoFactorEnabled;
             setTwoFactorStatus('Master Admin Key is required.', 'error');
             return;
@@ -1582,6 +1653,11 @@
     adminTicketReplyForm?.addEventListener('submit', saveAdminTicketReply);
     adminTicketSaveStatus?.addEventListener('click', saveAdminTicketStatus);
     addPaymentMethod?.addEventListener('click', () => {
+        if (!paymentSettingsUnlocked) {
+            setPaymentStatus('Unlock with Master Key before editing.', 'error');
+            return;
+        }
+
         const methods = collectPaymentMethods();
         methods.push({ id: `crypto-${methods.length + 1}`, name: 'New Crypto', symbol: 'CRYPTO', network: '', address: '', qrImage: '', networkNote: '', active: true });
         renderPaymentMethods(methods);

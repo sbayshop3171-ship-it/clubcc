@@ -3102,8 +3102,21 @@ function handleAdminDepositSettings(req, res) {
     }
 
     parseBody(req).then((body) => {
+        if (!requireMasterAdminKey(body, res)) {
+            return;
+        }
         jsonResponse(res, 200, { ok: true, settings: writeDepositSettings(body) });
     }).catch(() => sendError(res, 400, 'Invalid settings payload'));
+}
+
+async function handleAdminPaymentUnlock(req, res) {
+    const body = await parseBody(req);
+
+    if (!requireMasterAdminKey(body, res)) {
+        return;
+    }
+
+    jsonResponse(res, 200, { ok: true, message: 'Payment settings unlocked' });
 }
 
 function handleAdminDeposits(req, res) {
@@ -3234,7 +3247,8 @@ function serveStatic(req, res, pathname) {
         }
 
         res.writeHead(200, {
-            'Content-Type': getContentType(filePath)
+            'Content-Type': getContentType(filePath),
+            'Cache-Control': 'no-store, no-cache, must-revalidate'
         });
         res.end(data);
     });
@@ -3428,6 +3442,12 @@ async function handleRequest(req, res) {
                 return;
             }
             handleAdminDepositSettings(req, res);
+            return;
+        }
+
+        if (req.method === 'POST' && url.pathname === '/api/admin/payment/unlock') {
+            if (!requireAdminSession(req, res)) return;
+            await handleAdminPaymentUnlock(req, res);
             return;
         }
 

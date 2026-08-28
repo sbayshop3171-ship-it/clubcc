@@ -11,6 +11,9 @@
     const paymentMethodsView = document.getElementById('paymentMethodsView');
     const depositRequestsView = document.getElementById('depositRequestsView');
     const paymentViewLinks = document.querySelectorAll('[data-payment-view]');
+    const masterAdminKey = document.getElementById('masterAdminKey');
+    const unlockButton = document.getElementById('unlockPaymentSettings');
+    let paymentSettingsUnlocked = false;
 
     function session() {
         if (sessionTimeout) {
@@ -53,22 +56,33 @@
         settingsStatus.classList.toggle('is-error', type === 'error');
     }
 
+    function setLocked(locked) {
+        paymentSettingsUnlocked = !locked;
+        settingsForm.querySelectorAll('[data-payment-lock]').forEach((element) => {
+            element.disabled = locked;
+        });
+    }
+
+    function lockAttribute() {
+        return paymentSettingsUnlocked ? 'data-payment-lock' : 'data-payment-lock disabled';
+    }
+
     function renderMethods(methods) {
         methodsElement.innerHTML = methods.map((method, index) => `
             <fieldset class="admin-payment-method" data-index="${index}">
                 <legend>Gateway ${index + 1}</legend>
                 <div class="settings-grid settings-grid-wide">
-                    <label>Coin name<input class="form-control" data-field="name" value="${escapeHtml(method.name)}" required></label>
-                    <label>Symbol<input class="form-control" data-field="symbol" value="${escapeHtml(method.symbol)}" required></label>
-                    <label>Network<input class="form-control" data-field="network" value="${escapeHtml(method.network || '')}" placeholder="TRC20 / ERC20"></label>
-                    <label>Wallet address<input class="form-control" data-field="address" value="${escapeHtml(method.address)}" required></label>
-                    <label>QR code image URL<input class="form-control" data-field="qrImage" value="${escapeHtml(method.qrImage)}"></label>
-                    <label>Upload QR code<input class="form-control" type="file" accept="image/*" data-upload></label>
-                    <label>Network note<input class="form-control" data-field="networkNote" value="${escapeHtml(method.networkNote)}"></label>
-                    <label class="toggle-field"><input type="checkbox" data-field="active"${method.active !== false ? ' checked' : ''}><span>Active gateway</span></label>
+                    <label>Coin name<input class="form-control" data-field="name" value="${escapeHtml(method.name)}" required ${lockAttribute()}></label>
+                    <label>Symbol<input class="form-control" data-field="symbol" value="${escapeHtml(method.symbol)}" required ${lockAttribute()}></label>
+                    <label>Network<input class="form-control" data-field="network" value="${escapeHtml(method.network || '')}" placeholder="TRC20 / ERC20" ${lockAttribute()}></label>
+                    <label>Wallet address<input class="form-control" data-field="address" value="${escapeHtml(method.address)}" required ${lockAttribute()}></label>
+                    <label>QR code image URL<input class="form-control" data-field="qrImage" value="${escapeHtml(method.qrImage)}" ${lockAttribute()}></label>
+                    <label>Upload QR code<input class="form-control" type="file" accept="image/*" data-upload ${lockAttribute()}></label>
+                    <label>Network note<input class="form-control" data-field="networkNote" value="${escapeHtml(method.networkNote)}" ${lockAttribute()}></label>
+                    <label class="toggle-field"><input type="checkbox" data-field="active"${method.active !== false ? ' checked' : ''} ${lockAttribute()}><span>Active gateway</span></label>
                 </div>
                 <input type="hidden" data-field="id" value="${escapeHtml(method.id)}">
-                <button class="admin-button btn remove-payment-method" type="button">Remove</button>
+                <button class="admin-button btn remove-payment-method" type="button" ${lockAttribute()}>Remove</button>
             </fieldset>`).join('');
     }
 
@@ -85,18 +99,51 @@
             const data = await api('/admin/deposit-settings');
             minimumAmount.value = data.settings.minimumAmount;
             paymentWindow.value = data.settings.paymentWindowMinutes;
+            setLocked(true);
             renderMethods(data.settings.methods);
-            setStatus('Synced', 'success');
+            setStatus('Locked');
         } catch (error) { setStatus(error.message, 'error'); }
     }
 
     async function saveSettings(event) {
         event.preventDefault();
+        if (!paymentSettingsUnlocked) {
+            setStatus('Unlock with Master Key before editing.', 'error');
+            return;
+        }
+
+        const key = masterAdminKey.value.trim();
+        if (!key) {
+            setStatus('Enter the Master Admin Key.', 'error');
+            return;
+        }
+
         setStatus('Saving');
         try {
-            await api('/admin/deposit-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ minimumAmount: Number(minimumAmount.value), paymentWindowMinutes: Number(paymentWindow.value), methods: collectMethods() }) });
+            await api('/admin/deposit-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ minimumAmount: Number(minimumAmount.value), paymentWindowMinutes: Number(paymentWindow.value), methods: collectMethods(), masterAdminKey: key }) });
             setStatus('Saved', 'success');
-        } catch (error) { setStatus(error.message, 'error'); }
+            masterAdminKey.value = '';
+            setLocked(true);
+        } catch (error) {
+            setLocked(true);
+            setStatus(error.message === 'Unauthorized. Invalid Admin Key.' ? 'Incorrect Master Key. Form remains locked.' : error.message, 'error');
+        }
+    }
+
+    async function unlockPaymentSettings() {
+        if (!masterAdminKey.value.trim()) {
+            setStatus('Enter the Master Admin Key.', 'error');
+            return;
+        }
+
+        try {
+            await api('/admin/payment/unlock', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ masterAdminKey: masterAdminKey.value.trim() }) });
+            setLocked(false);
+            setStatus('Unlocked', 'success');
+        } catch (error) {
+            setLocked(true);
+            setStatus('Incorrect Master Key. Form remains locked.', 'error');
+        }
     }
 
     function renderRequests(deposits) {
@@ -122,10 +169,21 @@
 
     if (!session()?.token) { redirectToLogin(); return; }
     showPaymentView(window.location.hash === '#requests' ? 'requests' : 'methods');
+    setLocked(true);
     window.addEventListener('hashchange', () => showPaymentView(window.location.hash === '#requests' ? 'requests' : 'methods'));
     settingsForm.addEventListener('submit', saveSettings);
+    unlockButton.addEventListener('click', unlockPaymentSettings);
     document.getElementById('refreshDeposits').addEventListener('click', loadRequests);
-    document.getElementById('addPaymentMethod').addEventListener('click', () => { const methods = collectMethods(); methods.push({ id: `crypto-${methods.length + 1}`, name: 'New Crypto', symbol: 'CRYPTO', network: '', address: '', qrImage: '', networkNote: '', active: true }); renderMethods(methods); });
+    document.getElementById('addPaymentMethod').addEventListener('click', () => {
+        if (!paymentSettingsUnlocked) {
+            setStatus('Unlock with Master Key before editing.', 'error');
+            return;
+        }
+
+        const methods = collectMethods();
+        methods.push({ id: `crypto-${methods.length + 1}`, name: 'New Crypto', symbol: 'CRYPTO', network: '', address: '', qrImage: '', networkNote: '', active: true });
+        renderMethods(methods);
+    });
     methodsElement.addEventListener('click', (event) => { if (event.target.closest('.remove-payment-method')) event.target.closest('.admin-payment-method').remove(); });
     methodsElement.addEventListener('change', (event) => { const input = event.target.closest('[data-upload]'); if (!input?.files[0]) return; const reader = new FileReader(); reader.addEventListener('load', () => { input.closest('.admin-payment-method').querySelector('[data-field="qrImage"]').value = reader.result; }); reader.readAsDataURL(input.files[0]); });
     requestBody.addEventListener('click', async (event) => { const button = event.target.closest('[data-action]'); if (!button) return; const note = window.prompt(button.dataset.action === 'reject' ? 'Rejection note (optional)' : 'Approval note (optional)', '') ?? ''; button.disabled = true; try { await api(`/admin/deposits/${button.dataset.depositId}/${button.dataset.action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note }) }); await loadRequests(); } catch (error) { window.alert(error.message); button.disabled = false; } });

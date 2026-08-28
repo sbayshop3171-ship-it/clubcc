@@ -841,8 +841,8 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                                 <p class="mt-3">Manual key: <strong id="twoFactorSecret"></strong></p>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label" for="masterAdminKey">Master Admin Key</label>
-                                <input class="form-control" id="masterAdminKey" type="password" autocomplete="off" required>
+                                <label class="form-label" for="twoFactorMasterAdminKey">Master Admin Key</label>
+                                <input class="form-control" id="twoFactorMasterAdminKey" type="password" autocomplete="off" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="twoFactorCode">Authenticator code</label>
@@ -888,7 +888,7 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                         <h5 class="mb-1">Payment Methods</h5>
                         <p class="mb-0 text-muted">Manage the cryptocurrency gateways available for deposits.</p>
                     </div>
-                    <button class="btn btn-primary" id="addPaymentMethod" type="button">Add gateway</button>
+                    <button class="btn btn-primary" id="addPaymentMethod" data-payment-lock type="button" disabled>Add gateway</button>
                 </div>
                 <div class="card card-bordered shadow-sm">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -897,12 +897,21 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                     </div>
                     <div class="card-body">
                         <form id="paymentSettingsForm" class="payment-settings-form">
+                            <div class="row g-3 align-items-end mb-4">
+                                <div class="col-md-5 col-xl-4">
+                                    <label class="form-label" for="paymentMasterAdminKey">Master Admin Key</label>
+                                    <input class="form-control" id="paymentMasterAdminKey" type="password" autocomplete="off">
+                                </div>
+                                <div class="col-md-auto">
+                                    <button class="btn btn-dark" id="unlockPaymentSettings" type="button">Unlock</button>
+                                </div>
+                            </div>
                             <div class="row g-3 mb-4">
-                                <div class="col-md-4"><label class="form-label" for="minimumDepositInput">Minimum deposit ($)</label><input class="form-control" id="minimumDepositInput" type="number" min="0" step="0.01"></div>
-                                <div class="col-md-4"><label class="form-label" for="paymentWindowInput">Payment window (minutes)</label><input class="form-control" id="paymentWindowInput" type="number" min="5" max="180"></div>
+                                <div class="col-md-4"><label class="form-label" for="minimumDepositInput">Minimum deposit ($)</label><input class="form-control" id="minimumDepositInput" data-payment-lock type="number" min="0" step="0.01" disabled></div>
+                                <div class="col-md-4"><label class="form-label" for="paymentWindowInput">Payment window (minutes)</label><input class="form-control" id="paymentWindowInput" data-payment-lock type="number" min="5" max="180" disabled></div>
                             </div>
                             <div id="adminPaymentMethods" class="d-grid gap-3"></div>
-                            <div class="d-flex justify-content-end mt-4"><button class="btn btn-primary" type="submit">Save Settings</button></div>
+                            <div class="d-flex justify-content-end mt-4"><button class="btn btn-primary" data-payment-lock type="submit" disabled>Save Settings</button></div>
                         </form>
                     </div>
                 </div>

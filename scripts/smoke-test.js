@@ -5,6 +5,7 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const host = '127.0.0.1';
 const adminSessionTtlMs = 4 * 60 * 1000;
+const ciMasterAdminKey = 'ci-smoke-test-key';
 const endpoints = [
     { path: '/api/health', type: 'json' },
     { path: '/api/captcha', type: 'json' },
@@ -128,6 +129,79 @@ async function assertAdminSession(baseUrl) {
         throw new Error('/api/admin/session rejected a fresh admin token');
     }
 
+    const lockedSaveResponse = await fetch(`${baseUrl}/api/admin/deposit-settings`, {
+        method: 'PUT',
+        headers: {
+            ...sessionHeaders,
+            'Content-Type': 'application/json; charset=utf-8'
+        },
+        body: JSON.stringify({
+            minimumAmount: 50,
+            paymentWindowMinutes: 40,
+            methods: []
+        })
+    });
+
+    if (lockedSaveResponse.status !== 403) {
+        throw new Error('/api/admin/deposit-settings accepted a save without Master Admin Key');
+    }
+
+    const invalidUnlockResponse = await fetch(`${baseUrl}/api/admin/payment/unlock`, {
+        method: 'POST',
+        headers: {
+            ...sessionHeaders,
+            'Content-Type': 'application/json; charset=utf-8'
+        },
+        body: JSON.stringify({
+            masterAdminKey: 'wrong-key'
+        })
+    });
+
+    if (invalidUnlockResponse.status !== 403) {
+        throw new Error('/api/admin/payment/unlock accepted an incorrect Master Admin Key');
+    }
+
+    const validUnlockResponse = await fetch(`${baseUrl}/api/admin/payment/unlock`, {
+        method: 'POST',
+        headers: {
+            ...sessionHeaders,
+            'Content-Type': 'application/json; charset=utf-8'
+        },
+        body: JSON.stringify({
+            masterAdminKey: ciMasterAdminKey
+        })
+    });
+
+    if (!validUnlockResponse.ok) {
+        throw new Error('/api/admin/payment/unlock rejected the configured Master Admin Key');
+    }
+
+    const saveResponse = await fetch(`${baseUrl}/api/admin/deposit-settings`, {
+        method: 'PUT',
+        headers: {
+            ...sessionHeaders,
+            'Content-Type': 'application/json; charset=utf-8'
+        },
+        body: JSON.stringify({
+            minimumAmount: 50,
+            paymentWindowMinutes: 40,
+            methods: [{
+                id: 'bitcoin',
+                name: 'Bitcoin',
+                symbol: 'BTC',
+                address: 'bc1qexamplewalletaddress',
+                qrImage: '',
+                networkNote: 'Send BTC only to this Bitcoin address.',
+                active: true
+            }],
+            masterAdminKey: ciMasterAdminKey
+        })
+    });
+
+    if (!saveResponse.ok) {
+        throw new Error('/api/admin/deposit-settings rejected a valid Master Admin Key');
+    }
+
     const logoutResponse = await fetch(`${baseUrl}/api/admin/logout`, {
         method: 'POST',
         headers: sessionHeaders
@@ -145,7 +219,7 @@ async function assertAdminSession(baseUrl) {
         throw new Error('/api/admin/session accepted a logged-out token');
     }
 
-    console.log('OK admin session TTL and logout');
+    console.log('OK admin session TTL, payment Master Key, and logout');
 }
 
 async function main() {
@@ -156,7 +230,7 @@ async function main() {
             ...process.env,
             HOST: host,
             PORT: String(port),
-            MASTER_ADMIN_KEY: process.env.MASTER_ADMIN_KEY || 'ci-smoke-test-key'
+            MASTER_ADMIN_KEY: ciMasterAdminKey
         },
         stdio: ['ignore', 'pipe', 'pipe']
     });

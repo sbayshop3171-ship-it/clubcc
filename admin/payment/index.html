@@ -33,14 +33,18 @@
             </header>
             <div class="admin-payment-content">
                 <section class="ticker-admin-card card card-bordered nk-block dashboard-module" id="paymentMethodsView" aria-labelledby="gatewayTitle">
-                    <div class="section-heading"><h2 id="gatewayTitle">Payment Gateways</h2><button class="admin-button btn" id="addPaymentMethod" type="button">Add gateway</button></div>
+                    <div class="section-heading"><h2 id="gatewayTitle">Payment Gateways</h2></div>
                     <form id="paymentSettingsForm" class="payment-settings-form">
                         <div class="settings-grid settings-grid-compact">
-                            <label>Minimum deposit ($)<input class="form-control" id="minimumDepositInput" type="number" min="0" step="0.01"></label>
-                            <label>Payment window (minutes)<input class="form-control" id="paymentWindowInput" type="number" min="5" max="180"></label>
+                            <label>Master Admin Key<input class="form-control" id="masterAdminKey" type="password" autocomplete="off" required></label>
+                            <div class="settings-actions"><button class="admin-button btn" id="unlockPaymentSettings" type="button">Unlock</button></div>
+                        </div>
+                        <div class="settings-grid settings-grid-compact">
+                            <label>Minimum deposit ($)<input class="form-control" id="minimumDepositInput" data-payment-lock type="number" min="0" step="0.01" disabled></label>
+                            <label>Payment window (minutes)<input class="form-control" id="paymentWindowInput" data-payment-lock type="number" min="5" max="180" disabled></label>
                         </div>
                         <div id="adminPaymentMethods" class="admin-payment-methods"></div>
-                        <div class="settings-actions"><button class="admin-button admin-button-primary btn btn-primary" type="submit">Save Settings</button></div>
+                        <div class="settings-actions"><button class="admin-button admin-button-primary btn btn-primary" id="savePaymentSettings" data-payment-lock type="submit" disabled>Save Settings</button><button class="admin-button btn" id="addPaymentMethod" data-payment-lock type="button" disabled>Add gateway</button></div>
                         <p class="settings-status" id="paymentSettingsStatus">Loading</p>
                     </form>
                 </section>
