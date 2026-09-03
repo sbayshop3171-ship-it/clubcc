@@ -1,7 +1,6 @@
 (function () {
     const SESSION_KEY = 'dashlite.auth.session';
     const API_BASE = '/api';
-    const ANNOUNCEMENT_DISMISSED_KEY = 'dashlite.announcement.dismissed';
     const REFRESH_INTERVAL_MS = 30000;
     const DEFAULT_SLIDE_INTERVAL_MS = 5000;
     const VISIBLE_TICKER_ROWS = 2;
@@ -1778,7 +1777,7 @@
             const data = await apiGet('/announcement-alert');
             const alert = data.alert;
 
-            if (!alert?.is_enabled || sessionStorage.getItem(ANNOUNCEMENT_DISMISSED_KEY) === 'true') {
+            if (!alert?.is_enabled) {
                 return;
             }
 
@@ -1797,7 +1796,6 @@
     }
 
     function dismissAnnouncementAlert() {
-        sessionStorage.setItem(ANNOUNCEMENT_DISMISSED_KEY, 'true');
         announcementModal.hidden = true;
     }
 
