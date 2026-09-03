@@ -2267,9 +2267,10 @@
         virtualCardPreview?.classList.toggle('is-mastercard', type === 'MASTERCARD');
         virtualCardPreview?.classList.toggle('is-visa', type === 'VISA');
         previewNetwork.textContent = type === 'MASTERCARD' ? 'MASTERCARD' : 'VISA';
-        previewNumber.textContent = `**** **** **** ${String(virtualPreviewDetails.number).slice(-4)}`;
-        previewExpiry.textContent = maskVirtualCardExpiry(virtualPreviewDetails.expiry);
-        previewCvv.textContent = maskVirtualCardCvv(virtualPreviewDetails.cvv);
+        const hasAssignedCredentials = virtualPreviewDetails.number && virtualPreviewDetails.expiry && virtualPreviewDetails.cvv;
+        previewNumber.textContent = hasAssignedCredentials ? `**** **** **** ${String(virtualPreviewDetails.number).slice(-4)}` : '**** **** **** ****';
+        previewExpiry.textContent = hasAssignedCredentials ? maskVirtualCardExpiry(virtualPreviewDetails.expiry) : 'MM/YY';
+        previewCvv.textContent = hasAssignedCredentials ? maskVirtualCardCvv(virtualPreviewDetails.cvv) : '***';
         previewName.textContent = (virtualCardName?.value || 'CARDHOLDER NAME').trim().toUpperCase();
     }
 
