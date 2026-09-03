@@ -110,12 +110,17 @@
     const virtualCardEditModal = document.getElementById('virtualCardEditModal');
     const virtualCardEditForm = document.getElementById('virtualCardEditForm');
     const virtualCardEditStatus = document.getElementById('virtualCardEditStatus');
+    const virtualCardEditTitle = document.getElementById('virtualCardEditTitle');
+    const virtualCardApprovalSummary = document.getElementById('virtualCardApprovalSummary');
+    const editVirtualCardStatusField = document.getElementById('editVirtualCardStatusField');
+    const virtualCardEditSubmit = document.getElementById('virtualCardEditSubmit');
     const editVirtualCardName = document.getElementById('editVirtualCardName');
     const editVirtualCardNumber = document.getElementById('editVirtualCardNumber');
     const editVirtualCardExpiry = document.getElementById('editVirtualCardExpiry');
     const editVirtualCardCvv = document.getElementById('editVirtualCardCvv');
     const editVirtualCardStatus = document.getElementById('editVirtualCardStatus');
     let selectedVirtualCardId = null;
+    let virtualCardApprovalMode = false;
     const ssnSection = document.getElementById('ssnSection');
     const generateBulkSsn = document.getElementById('generateBulkSsn');
     const adminSsnStatus = document.getElementById('adminSsnStatus');
@@ -719,13 +724,13 @@
                 <td>${escapeHtml(card.userId)} / ${escapeHtml(card.email || card.username)}</td>
                 <td>${escapeHtml(card.type)}</td>
                 <td>${escapeHtml(card.name)}</td>
-                <td>${escapeHtml(card.number)}</td>
-                <td>${escapeHtml(card.expiry)}</td>
-                <td>${escapeHtml(card.cvv)}</td>
+                <td>${escapeHtml(card.number || '**** **** **** ****')}</td>
+                <td>${escapeHtml(card.expiry || 'MM/YY')}</td>
+                <td>${escapeHtml(card.cvv || '***')}</td>
                 <td>$${Number(card.amount || 0).toFixed(2)}</td>
-                <td><span class="badge bg-${card.status === 'Active' ? 'success' : 'secondary'}">${escapeHtml(card.status)}</span></td>
+                <td><span class="badge bg-${card.status === 'Active' ? 'success' : card.status === 'Pending' ? 'warning text-dark' : 'secondary'}">${escapeHtml(card.status)}</span></td>
                 <td class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-primary" type="button" data-edit-virtual-card="${escapeHtml(card.id)}">Edit</button>
+                    ${card.status === 'Pending' ? `<button class="btn btn-sm btn-primary" type="button" data-approve-virtual-card="${escapeHtml(card.id)}">Approve Request</button>` : `<button class="btn btn-sm btn-outline-primary" type="button" data-edit-virtual-card="${escapeHtml(card.id)}">Edit</button>`}
                     <button class="btn btn-sm btn-outline-danger" type="button" data-delete-virtual-card="${escapeHtml(card.id)}">Delete</button>
                 </td>
             </tr>
@@ -733,12 +738,33 @@
     }
 
     function openVirtualCardEditor(card) {
+        virtualCardApprovalMode = false;
         selectedVirtualCardId = card.id;
+        virtualCardEditTitle.textContent = 'Edit Virtual Card';
+        virtualCardApprovalSummary.hidden = true;
+        editVirtualCardStatusField.hidden = false;
+        virtualCardEditSubmit.textContent = 'Save Changes';
         editVirtualCardName.value = card.name || '';
         editVirtualCardNumber.value = card.number || '';
         editVirtualCardExpiry.value = card.expiry || '';
         editVirtualCardCvv.value = card.cvv || '';
         editVirtualCardStatus.value = card.status || 'Active';
+        setVirtualCardEditStatus('');
+        bootstrap.Modal.getOrCreateInstance(virtualCardEditModal).show();
+    }
+
+    function openVirtualCardApproval(card) {
+        virtualCardApprovalMode = true;
+        selectedVirtualCardId = card.id;
+        virtualCardEditTitle.textContent = 'Approve Virtual Card Request';
+        virtualCardApprovalSummary.textContent = `${card.username || card.userId} requested a $${Number(card.amount || 0).toFixed(2)} virtual card.`;
+        virtualCardApprovalSummary.hidden = false;
+        editVirtualCardStatusField.hidden = true;
+        virtualCardEditSubmit.textContent = 'Approve Request';
+        editVirtualCardName.value = card.name || '';
+        editVirtualCardNumber.value = '';
+        editVirtualCardExpiry.value = '';
+        editVirtualCardCvv.value = '';
         setVirtualCardEditStatus('');
         bootstrap.Modal.getOrCreateInstance(virtualCardEditModal).show();
     }
@@ -764,8 +790,8 @@
         setVirtualCardEditStatus('Saving...');
 
         try {
-            const response = await fetch(`/api/admin/cards/${selectedVirtualCardId}`, {
-                method: 'PUT',
+            const response = await fetch(`/api/admin/${virtualCardApprovalMode ? 'virtual-cards' : 'cards'}/${selectedVirtualCardId}${virtualCardApprovalMode ? '/approve' : ''}`, {
+                method: virtualCardApprovalMode ? 'POST' : 'PUT',
                 headers: { ...authHeaders(), 'Content-Type': 'application/json; charset=utf-8' },
                 body: JSON.stringify(Object.fromEntries(new FormData(virtualCardEditForm)))
             });
@@ -1649,6 +1675,7 @@
         if (activeView === 'dashboard') {
             loadDashboardSettings();
             loadAnnouncementSettings();
+            loadVirtualCards();
         } else if (activeView === 'users') {
             loadUsers();
         } else if (activeView === 'checker') {
@@ -1771,9 +1798,16 @@
     virtualCardEditForm?.addEventListener('submit', saveVirtualCard);
     adminVirtualCardsTableBody?.addEventListener('click', (event) => {
         const editButton = event.target.closest('[data-edit-virtual-card]');
+        const approveButton = event.target.closest('[data-approve-virtual-card]');
         const deleteButton = event.target.closest('[data-delete-virtual-card]');
 
-        if (editButton) {
+        if (approveButton) {
+            const cardId = Number(approveButton.dataset.approveVirtualCard);
+            fetch('/api/admin/virtual-cards', { headers: authHeaders() })
+                .then((response) => adminJson(response, 'Unable to load virtual cards'))
+                .then((data) => openVirtualCardApproval(data.cards.find((card) => card.id === cardId)))
+                .catch((error) => setCardsStatus(error.message || 'Unable to load virtual card', 'error'));
+        } else if (editButton) {
             const cardId = Number(editButton.dataset.editVirtualCard);
             fetch('/api/admin/virtual-cards', { headers: authHeaders() })
                 .then((response) => adminJson(response, 'Unable to load virtual cards'))

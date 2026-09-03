@@ -68,6 +68,9 @@
     const purchaseDetailsModal = document.getElementById('purchaseDetailsModal');
     const purchaseDetailsContent = document.getElementById('purchaseDetailsContent');
     const purchaseDetailsClose = document.getElementById('purchaseDetailsClose');
+    const virtualCardDetailsModal = document.getElementById('virtualCardDetailsModal');
+    const virtualCardDetailsContent = document.getElementById('virtualCardDetailsContent');
+    const virtualCardDetailsClose = document.getElementById('virtualCardDetailsClose');
     const attentionTitle = document.getElementById('attentionTitle');
     const attentionBody = document.getElementById('attentionBody');
     const attentionLinks = document.getElementById('attentionLinks');
@@ -174,6 +177,7 @@
     let activePurchaseRequest = null;
     let cartItems = [];
     let purchaseRecords = [];
+    let virtualCardRecords = [];
     let walletBalanceValue = 0;
     let checkerPriceValue = 0.30;
     let subPriceValue = 120;
@@ -2236,6 +2240,15 @@
         return number + ((10 - (checksum % 10)) % 10);
     }
 
+    function maskVirtualCardCvv(cvv) {
+        const value = String(cvv || '');
+        return value ? `${value.charAt(0)}**` : '***';
+    }
+
+    function maskVirtualCardExpiry(expiry) {
+        return '**/**';
+    }
+
     function updateVirtualCardPreview({ regenerate = false } = {}) {
         const type = virtualCardType?.value || 'VISA';
         if (regenerate || !virtualPreviewDetails || virtualPreviewDetails.type !== type) {
@@ -2255,15 +2268,15 @@
         virtualCardPreview?.classList.toggle('is-visa', type === 'VISA');
         previewNetwork.textContent = type === 'MASTERCARD' ? 'MASTERCARD' : 'VISA';
         previewNumber.textContent = `**** **** **** ${String(virtualPreviewDetails.number).slice(-4)}`;
-        previewExpiry.textContent = virtualPreviewDetails.expiry;
-        previewCvv.textContent = '***';
+        previewExpiry.textContent = maskVirtualCardExpiry(virtualPreviewDetails.expiry);
+        previewCvv.textContent = maskVirtualCardCvv(virtualPreviewDetails.cvv);
         previewName.textContent = (virtualCardName?.value || 'CARDHOLDER NAME').trim().toUpperCase();
     }
 
     function renderVirtualCards(cards) {
         if (!virtualCardsTableBody) return;
         if (!cards.length) {
-            virtualCardsTableBody.innerHTML = '<tr><td colspan="8" class="empty-history">No virtual cards yet.</td></tr>';
+            virtualCardsTableBody.innerHTML = '<tr><td colspan="9" class="empty-history">No virtual cards yet.</td></tr>';
             return;
         }
 
@@ -2274,17 +2287,76 @@
                 <td>$${Number(card.amount).toFixed(2)}</td>
                 <td>${escapeHtml(card.name)}</td>
                 <td class="virtual-card-sensitive">${escapeHtml(card.masked_number || '**** **** **** ****')}</td>
-                <td>${escapeHtml(card.expiry)}</td>
-                <td class="virtual-card-sensitive">${escapeHtml(card.masked_cvv || '***')}</td>
+                <td>${escapeHtml(maskVirtualCardExpiry(card.expiry))}</td>
+                <td class="virtual-card-sensitive">${escapeHtml(card.masked_cvv || maskVirtualCardCvv(card.cvv))}</td>
                 <td><span class="deposit-status is-approved">${escapeHtml(card.status)}</span></td>
+                <td><button class="admin-button" type="button" data-view-card="${escapeHtml(card.id)}">View</button></td>
             </tr>
         `).join('');
+    }
+
+    function showVirtualCardDetails(card) {
+        if (!virtualCardDetailsModal || !virtualCardDetailsContent || !card) {
+            return;
+        }
+
+        const detailRows = [
+            ['Card ID', `#${card.id}`],
+            ['Type', card.type],
+            ['Amount', `$${Number(card.amount || 0).toFixed(2)}`],
+            ['Cardholder', card.name],
+            ['Number', card.masked_number || card.number || '**** **** **** ****'],
+            ['Expiry', maskVirtualCardExpiry(card.expiry)],
+            ['CVV', card.masked_cvv || maskVirtualCardCvv(card.cvv)],
+            ['Status', card.status]
+        ];
+
+        virtualCardDetailsContent.innerHTML = `
+            <dl class="purchase-details-list">
+                ${detailRows.map(([label, value]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(String(value || '-'))}</dd></div>`).join('')}
+            </dl>
+        `;
+        virtualCardDetailsModal.hidden = false;
+    }
+
+    async function viewVirtualCard(cardId, button) {
+        if (!cardId) {
+            return;
+        }
+
+        button.disabled = true;
+        try {
+            const data = await apiGet(`/virtual-cards/${cardId}/reveal`);
+            const card = data.card;
+            const recordIndex = virtualCardRecords.findIndex((record) => String(record.id) === String(cardId));
+            if (recordIndex >= 0) {
+                virtualCardRecords[recordIndex] = { ...virtualCardRecords[recordIndex], ...card };
+            }
+            if (card.status === 'Active' && card.number) {
+                virtualPreviewDetails = { type: card.type, number: card.number, expiry: card.expiry, cvv: card.cvv };
+                updateVirtualCardPreview();
+            }
+            showVirtualCardDetails(card);
+        } catch (error) {
+            if (error.message !== 'Session expired') {
+                showDashboardToast(error.message || 'Unable to load card details', 'error');
+            }
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    function closeVirtualCardDetails() {
+        if (virtualCardDetailsModal) {
+            virtualCardDetailsModal.hidden = true;
+        }
     }
 
     async function loadVirtualCards() {
         try {
             const data = await apiGet('/dashboard/virtual-cards');
-            renderVirtualCards(data.cards || []);
+            virtualCardRecords = Array.isArray(data.cards) ? data.cards : [];
+            renderVirtualCards(virtualCardRecords);
             if (virtualCardBalance) virtualCardBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
         } catch (error) {
             if (error.message !== 'Session expired' && virtualCardStatus) virtualCardStatus.textContent = error.message;
@@ -2301,7 +2373,7 @@
                 amount: virtualCardAmount.value,
                 name: virtualCardName.value
             });
-            virtualCardStatus.textContent = 'Card created successfully';
+            virtualCardStatus.textContent = 'Request submitted. Awaiting admin approval.';
             setWalletBalance(data.walletBalance);
             virtualCardBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
             virtualPreviewDetails = data.card;
@@ -2777,6 +2849,18 @@
     virtualCardForm?.addEventListener('submit', createVirtualCard);
     refreshVirtualCards?.addEventListener('click', loadVirtualCards);
     refreshPurchases?.addEventListener('click', () => loadPurchases());
+    virtualCardsTableBody?.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-view-card]');
+        if (!button) return;
+
+        viewVirtualCard(button.dataset.viewCard, button);
+    });
+    virtualCardDetailsClose?.addEventListener('click', closeVirtualCardDetails);
+    virtualCardDetailsModal?.addEventListener('click', (event) => {
+        if (event.target === virtualCardDetailsModal) {
+            closeVirtualCardDetails();
+        }
+    });
     purchaseTableBody?.addEventListener('click', (event) => {
         const button = event.target.closest('[data-view-purchase]');
         const purchase = purchaseRecords.find((record) => String(record.id) === button?.dataset.viewPurchase);

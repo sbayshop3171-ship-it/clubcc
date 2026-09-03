@@ -115,7 +115,7 @@ const PUBLIC_ROUTES = new Map([
 ]);
 const DEFAULT_TICKER_SETTINGS = {
     telegramUrl: 'https://t.me/clubcc_support',
-    virtualCardNote: 'Your card details are generated securely for this account.',
+    virtualCardNote: 'আপনার কার্ডের বিস্তারিত এই অ্যাকাউন্টের জন্য নিরাপদে তৈরি করা হয়েছে।',
     onlineBase: 78,
     autoFluctuate: false,
     fluctuationRange: 0,
@@ -535,13 +535,15 @@ function generateVirtualCardNumber(type) {
 
 function publicVirtualCard(card) {
     const number = String(card.number || '');
+    const cvv = String(card.cvv || '');
+    const isApproved = card.status === 'Active';
 
     return {
         id: card.id,
         type: card.type,
-        masked_number: `**** **** **** ${number.slice(-4)}`,
-        expiry: card.expiry,
-        masked_cvv: '***',
+        masked_number: isApproved && number ? `**** **** **** ${number.slice(-4)}` : '**** **** **** ****',
+        expiry: isApproved && card.expiry ? '**/**' : 'MM/YY',
+        masked_cvv: isApproved && cvv ? `${cvv.charAt(0)}**` : '***',
         name: card.name,
         amount: card.amount,
         status: card.status,
@@ -574,6 +576,13 @@ function adminVirtualCard(card, users) {
     };
 }
 
+function validateVirtualCardCredentials(number, expiry, cvv) {
+    return /^\d{16}$/.test(number)
+        && validCardNumber(number)
+        && /^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)
+        && /^\d{3}$/.test(cvv);
+}
+
 async function handleAdminVirtualCards(req, res, url) {
     if (!requireAdminSession(req, res)) {
         return;
@@ -581,7 +590,7 @@ async function handleAdminVirtualCards(req, res, url) {
 
     const store = readVirtualCards();
     const users = readDatabase().users;
-    const cardMatch = url.pathname.match(/^\/api\/admin\/(?:virtual-cards|cards)\/(\d+)$/);
+    const cardMatch = url.pathname.match(/^\/api\/admin\/(?:virtual-cards|cards)\/(\d+)(\/approve)?$/);
 
     if (req.method === 'GET' && url.pathname === '/api/admin/virtual-cards') {
         jsonResponse(res, 200, {
@@ -609,6 +618,28 @@ async function handleAdminVirtualCards(req, res, url) {
         return;
     }
 
+    if (req.method === 'POST' && url.pathname.endsWith('/approve')) {
+        const body = await parseBody(req);
+        const number = sanitizeText(body.number, '', 16);
+        const expiry = sanitizeText(body.expiry, '', 5);
+        const cvv = sanitizeText(body.cvv, '', 3);
+
+        if (card.status !== 'Pending') {
+            sendError(res, 409, 'Only pending virtual cards can be approved');
+            return;
+        }
+
+        if (!validateVirtualCardCredentials(number, expiry, cvv)) {
+            sendError(res, 400, 'Enter a valid 16-digit card number, MM/YY expiry, and 3-digit CVV');
+            return;
+        }
+
+        Object.assign(card, { number, expiry, cvv, status: 'Active', updatedAt: new Date().toISOString() });
+        writeVirtualCards(store);
+        jsonResponse(res, 200, { ok: true, card: adminVirtualCard(card, users) });
+        return;
+    }
+
     if (req.method !== 'PUT') {
         sendError(res, 405, 'Method not allowed');
         return;
@@ -626,6 +657,11 @@ async function handleAdminVirtualCards(req, res, url) {
 
     if (!name || !number || !expiry || !cvv) {
         sendError(res, 400, 'Card name, number, expiry, and CVV are required');
+        return;
+    }
+
+    if (status === 'Active' && !validateVirtualCardCredentials(number, expiry, cvv)) {
+        sendError(res, 400, 'Active cards require a valid 16-digit card number, MM/YY expiry, and 3-digit CVV');
         return;
     }
 
@@ -1324,6 +1360,12 @@ function ensureTickerSettings() {
 
     if (!fs.existsSync(TICKER_SETTINGS_PATH)) {
         writeTickerSettings(DEFAULT_TICKER_SETTINGS);
+        return;
+    }
+
+    const currentSettings = readJsonStore(TICKER_SETTINGS_PATH, DEFAULT_TICKER_SETTINGS);
+    if (!currentSettings.virtualCardNote && !currentSettings.dashboardContent?.virtualCardNote) {
+        writeTickerSettings(currentSettings);
     }
 }
 
@@ -3024,18 +3066,16 @@ async function handleDashboardVirtualCards(req, res) {
         return;
     }
 
-    const expiryDate = new Date();
-    expiryDate.setFullYear(expiryDate.getFullYear() + 3);
     const card = {
         id: store.nextId,
         userId: user.id,
         type,
-        number: generateVirtualCardNumber(type),
-        expiry: `${String(expiryDate.getMonth() + 1).padStart(2, '0')}/${String(expiryDate.getFullYear()).slice(-2)}`,
-        cvv: String(crypto.randomInt(100, 1000)),
+        number: '',
+        expiry: '',
+        cvv: '',
         name,
         amount,
-        status: 'Active',
+        status: 'Pending',
         createdAt: new Date().toISOString()
     };
 
@@ -3068,6 +3108,11 @@ function handleRevealVirtualCard(req, res, cardId) {
 
     if (!card) {
         sendError(res, 404, 'Virtual card not found');
+        return;
+    }
+
+    if (card.status !== 'Active') {
+        jsonResponse(res, 200, { ok: true, card: publicVirtualCard(card) });
         return;
     }
 
@@ -3559,7 +3604,7 @@ async function handleRequest(req, res) {
             return;
         }
 
-        if ((req.method === 'GET' || req.method === 'PUT' || req.method === 'DELETE') && (url.pathname === '/api/admin/virtual-cards' || /^\/api\/admin\/virtual-cards\/\d+$/.test(url.pathname))) {
+        if ((req.method === 'GET' || req.method === 'PUT' || req.method === 'POST' || req.method === 'DELETE') && (url.pathname === '/api/admin/virtual-cards' || /^\/api\/admin\/virtual-cards\/\d+(?:\/approve)?$/.test(url.pathname))) {
             await handleAdminVirtualCards(req, res, url);
             return;
         }

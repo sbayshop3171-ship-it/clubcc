@@ -359,7 +359,7 @@ Keep two-factor recovery information private and report suspicious messages imme
                 <div class="col-12">
                     <label class="form-label" for="virtualCardNoteInput">Virtual Card Preview Note</label>
                     <input class="form-control" id="virtualCardNoteInput" type="text" maxlength="240"
-                    placeholder="Your card details are generated securely for this account.">
+                    placeholder="আপনার কার্ডের বিস্তারিত এই অ্যাকাউন্টের জন্য নিরাপদে তৈরি করা হয়েছে।">
                 </div>
                                 <div class="col-12">
                                     <label class="form-label" for="attentionLinksInput">Attention Links</label>
@@ -432,6 +432,19 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm admin-content-card">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">User Virtual Cards</span>
+                        <span class="badge bg-dark rounded-pill" id="adminVirtualCardsCount">0 cards</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 admin-cards-table">
+                            <thead><tr><th>User ID / Email</th><th>Type</th><th>Cardholder</th><th>Card Number</th><th>Expiry</th><th>CVV</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="adminVirtualCardsTableBody"><tr><td colspan="9" class="text-center text-muted py-5">Loading virtual cards...</td></tr></tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -764,18 +777,6 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                         No saved card records yet.
                     </div>
                 </div>
-                <div class="card border-0 shadow-sm mt-4">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                        <span class="fw-semibold">User Virtual Cards</span>
-                        <span class="badge bg-dark rounded-pill" id="adminVirtualCardsCount">0 cards</span>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table align-middle mb-0 admin-cards-table">
-                            <thead><tr><th>User ID / Email</th><th>Type</th><th>Cardholder</th><th>Card Number</th><th>Expiry</th><th>CVV</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
-                            <tbody id="adminVirtualCardsTableBody"><tr><td colspan="9" class="text-center text-muted py-5">Loading virtual cards...</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
             </section>
 
             <section id="purchasesSection" class="admin-cards-section py-4" data-admin-view-panel="purchases" hidden>
@@ -993,14 +994,14 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
             <div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title" id="virtualCardEditTitle">Edit Virtual Card</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
                 <form id="virtualCardEditForm">
-                    <div class="modal-body"><div class="row g-3">
+                    <div class="modal-body"><p class="text-muted small mb-3" id="virtualCardApprovalSummary" hidden></p><div class="row g-3">
                         <div class="col-md-6"><label class="form-label">Cardholder Name<input class="form-control" id="editVirtualCardName" name="name" required></label></div>
                         <div class="col-md-6"><label class="form-label">Card Number<input class="form-control" id="editVirtualCardNumber" name="number" required></label></div>
                         <div class="col-md-4"><label class="form-label">Expiry<input class="form-control" id="editVirtualCardExpiry" name="expiry" required></label></div>
                         <div class="col-md-4"><label class="form-label">CVV<input class="form-control" id="editVirtualCardCvv" name="cvv" required></label></div>
-                        <div class="col-md-4"><label class="form-label">Status<select class="form-select" id="editVirtualCardStatus" name="status"><option>Active</option><option>Inactive</option><option>Blocked</option></select></label></div>
+                        <div class="col-md-4" id="editVirtualCardStatusField"><label class="form-label">Status<select class="form-select" id="editVirtualCardStatus" name="status"><option>Active</option><option>Inactive</option><option>Blocked</option></select></label></div>
                     </div><p class="text-danger small mt-3 mb-0" id="virtualCardEditStatus" role="status"></p></div>
-                    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-dark" type="submit">Save Changes</button></div>
+                    <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-dark" id="virtualCardEditSubmit" type="submit">Save Changes</button></div>
                 </form>
             </div>
         </div>
