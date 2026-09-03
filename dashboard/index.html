@@ -705,7 +705,12 @@
 
     <div class="modal-backdrop announcement-modal" id="announcementModal" hidden>
         <section class="announcement-dialog glass-card" role="dialog" aria-modal="true" aria-labelledby="announcementTitle">
-            <button class="modal-close announcement-close" id="announcementClose" type="button" aria-label="Close announcement">&times;</button>
+            <button class="modal-close announcement-close" id="announcementClose" type="button" aria-label="Close announcement" title="Close announcement">
+                <iconify-icon icon="mdi:close" width="21" height="21"></iconify-icon>
+            </button>
+            <div class="announcement-icon" aria-hidden="true">
+                <iconify-icon icon="mdi:bullhorn-variant-outline" width="44" height="44"></iconify-icon>
+            </div>
             <p class="admin-kicker">Announcement</p>
             <h2 id="announcementTitle"></h2>
             <p id="announcementMessage"></p>
