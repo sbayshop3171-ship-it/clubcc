@@ -3,6 +3,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const { URL } = require('url');
+const bcrypt = require('bcryptjs');
 
 function loadEnvironmentFile() {
     const envPath = path.join(__dirname, '.env');
@@ -105,7 +106,11 @@ const PUBLIC_ROUTES = new Map([
     ['/admin/verify-2fa/', '/admin/verify-2fa/index.html'],
     ['/admin/login.html', '/admin/login'],
     ['/dashboard', '/dashboard/index.html'],
-    ['/dashboard/', '/dashboard/index.html']
+    ['/dashboard/', '/dashboard/index.html'],
+    ['/settings', '/dashboard/index.html'],
+    ['/settings/', '/dashboard/index.html'],
+    ['/profile', '/dashboard/index.html'],
+    ['/profile/', '/dashboard/index.html']
 ]);
 const DEFAULT_TICKER_SETTINGS = {
     telegramUrl: 'https://t.me/clubcc_support',
@@ -1446,11 +1451,23 @@ function verifyPassword(password, user) {
         return false;
     }
 
+    if (String(user.passwordHash).startsWith('$2')) {
+        return bcrypt.compareSync(String(password), user.passwordHash);
+    }
+
     const passwordHash = hashPassword(password, user.passwordSalt);
     const expectedHash = Buffer.from(user.passwordHash, 'hex');
     const actualHash = Buffer.from(passwordHash.hash, 'hex');
 
     return expectedHash.length === actualHash.length && crypto.timingSafeEqual(expectedHash, actualHash);
+}
+
+function invalidateUserSessions(userId) {
+    for (const [token, session] of sessions.entries()) {
+        if (session.user?.id === userId) {
+            sessions.delete(token);
+        }
+    }
 }
 
 function makeCaptchaCode() {
@@ -2291,6 +2308,47 @@ function handleSession(req, res) {
     jsonResponse(res, 200, {
         ok: true,
         session
+    });
+}
+async function handleUpdateProfile(req, res) {
+    const session = getSessionFromRequest(req);
+
+    if (!session) {
+        sendError(res, 401, 'No active session');
+        return;
+    }
+
+    const body = await parseBody(req);
+    const currentPassword = String(body.current_password || '');
+    const newPassword = String(body.new_password || '');
+    const confirmPassword = String(body.confirm_new_password || '');
+    const db = readDatabase();
+    const user = db.users.find((entry) => entry.id === session.user.id);
+
+    if (!user || !verifyPassword(currentPassword, user)) {
+        sendError(res, 400, 'Current password is incorrect');
+        return;
+    }
+
+    if (newPassword.length < 8) {
+        sendError(res, 400, 'New password must be at least 8 characters');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        sendError(res, 400, 'New passwords do not match');
+        return;
+    }
+
+    user.passwordSalt = '';
+    user.passwordHash = bcrypt.hashSync(newPassword, 12);
+    user.updatedAt = new Date().toISOString();
+    writeDatabase(db);
+    invalidateUserSessions(user.id);
+
+    jsonResponse(res, 200, {
+        ok: true,
+        message: 'Password updated successfully. Please sign in again.'
     });
 }
 
@@ -3333,6 +3391,10 @@ async function handleRequest(req, res) {
 
         if (req.method === 'GET' && url.pathname === '/api/session') {
             handleSession(req, res);
+            return;
+        }
+        if (req.method === 'POST' && url.pathname === '/api/user/update-profile') {
+            await handleUpdateProfile(req, res);
             return;
         }
 

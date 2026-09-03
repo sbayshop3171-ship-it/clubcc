@@ -1974,6 +1974,136 @@ body.cards-view-active .cards-table tr:hover td {
     background: rgba(255, 38, 53, 0.12);
 }
 
+.settings-page-heading {
+    margin-bottom: 22px;
+}
+
+.settings-page-intro {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.profile-settings-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.8fr) minmax(360px, 1.2fr);
+    gap: 20px;
+    align-items: stretch;
+}
+
+.profile-details-card,
+.account-settings-form {
+    min-width: 0;
+    padding: 26px;
+    border-radius: 5px;
+}
+
+.profile-details-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.profile-settings-avatar-wrap {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.profile-settings-avatar {
+    width: 128px;
+    height: 128px;
+    display: block;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.16);
+    border-radius: 50%;
+    background: #eef3f6;
+}
+
+.profile-online-dot {
+    position: absolute;
+    right: 6px;
+    bottom: 8px;
+    width: 15px;
+    height: 15px;
+    border: 3px solid #061725;
+    border-radius: 50%;
+    background: var(--green);
+}
+
+.profile-details-copy {
+    min-width: 0;
+}
+
+.profile-details-copy h2 {
+    margin: 8px 0 20px;
+    overflow: hidden;
+    font-size: 24px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-details-list {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+}
+
+.profile-details-list div {
+    display: grid;
+    gap: 4px;
+}
+
+.profile-details-list dt {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.profile-details-list dd {
+    margin: 0;
+    color: #eaf4fa;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.account-settings-form {
+    display: grid;
+    gap: 17px;
+}
+
+.account-password-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.account-settings-form label span {
+    color: var(--red);
+}
+
+.settings-form-hint {
+    margin: -4px 0 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.account-settings-form .settings-status {
+    justify-self: start;
+}
+
+.account-settings-form input[readonly] {
+    color: var(--muted);
+    cursor: not-allowed;
+}
+
+.account-settings-form .admin-button:disabled {
+    cursor: wait;
+    opacity: 0.55;
+}
+
 .ticker-settings-form,
 .settings-form,
 .settings-grid {
@@ -2791,6 +2921,10 @@ body.cards-view-active .cards-table tr:hover td {
         grid-template-columns: 1fr;
     }
 
+    .profile-settings-grid {
+        grid-template-columns: 1fr;
+    }
+
     .settings-grid-compact {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -2923,6 +3057,10 @@ body.cards-view-active .cards-table tr:hover td {
     }
 
     .settings-grid-compact {
+        grid-template-columns: 1fr;
+    }
+
+    .account-password-grid {
         grid-template-columns: 1fr;
     }
 

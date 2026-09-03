@@ -122,6 +122,13 @@
     const ticketReplyStatus = document.getElementById('ticketReplyStatus');
     const backToTickets = document.getElementById('backToTickets');
     const dashboardToast = document.getElementById('dashboardToast');
+    const accountSettingsForm = document.getElementById('accountSettingsForm');
+    const settingsUsername = document.getElementById('settingsUsername');
+    const settingsRegistered = document.getElementById('settingsRegistered');
+    const settingsLastActive = document.getElementById('settingsLastActive');
+    const settingsUsernameInput = document.getElementById('settingsUsernameInput');
+    const accountSettingsStatus = document.getElementById('accountSettingsStatus');
+    const saveAccountSettings = document.getElementById('saveAccountSettings');
     const tickerSettingsForm = document.getElementById('tickerSettingsForm');
     const settingsStatus = document.getElementById('settingsStatus');
     const resetTickerSettings = document.getElementById('resetTickerSettings');
@@ -1008,6 +1015,10 @@
     }
 
     function viewFromHash() {
+        if (['/settings', '/settings/', '/profile', '/profile/'].includes(window.location.pathname)) {
+            return 'settings';
+        }
+
         const hash = window.location.hash;
 
         if (hash === '#purchases/ssn') {
@@ -1028,7 +1039,7 @@
     }
 
     function showDashboardView(viewName) {
-        const activeView = ['cards', 'ssn', 'chicken', 'otp-bypass', 'tickets', 'cart', 'deposit', 'virtual-cards', 'purchases', 'purchases-ssn'].includes(viewName) ? viewName : 'news';
+        const activeView = ['cards', 'ssn', 'chicken', 'otp-bypass', 'tickets', 'cart', 'deposit', 'virtual-cards', 'purchases', 'purchases-ssn', 'settings'].includes(viewName) ? viewName : 'news';
 
         closeSidebar();
         document.body.classList.toggle('cards-view-active', activeView === 'cards');
@@ -1480,6 +1491,33 @@
         if (usernameEl) {
             usernameEl.textContent = username;
         }
+
+        if (settingsUsername) {
+            settingsUsername.textContent = username;
+        }
+        if (settingsUsernameInput) {
+            settingsUsernameInput.value = username;
+        }
+        if (settingsRegistered) {
+            settingsRegistered.textContent = formatAccountDate(user?.createdAt, false);
+        }
+        if (settingsLastActive) {
+            settingsLastActive.textContent = formatAccountDate(user?.lastLoginAt, true);
+        }
+    }
+
+    function formatAccountDate(value, includeTime) {
+        if (!value) {
+            return '-';
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return '-';
+        }
+
+        const datePart = date.toISOString().slice(0, 10);
+        return includeTime ? `${datePart} ${date.toISOString().slice(11, 19)}` : datePart;
     }
 
     function setStatus(message, type = '') {
@@ -1723,6 +1761,30 @@
 
                 setStatus('Offline', 'error');
             }
+        }
+    }
+
+    async function saveAccountProfile(event) {
+        event.preventDefault();
+        const formData = new FormData(accountSettingsForm);
+        accountSettingsStatus.textContent = 'Saving...';
+        accountSettingsStatus.className = 'settings-status';
+        saveAccountSettings.disabled = true;
+
+        try {
+            const data = await apiPost('/user/update-profile', {
+                current_password: formData.get('current_password'),
+                new_password: formData.get('new_password'),
+                confirm_new_password: formData.get('confirm_new_password')
+            });
+            accountSettingsStatus.textContent = data.message || 'Password updated successfully.';
+            accountSettingsStatus.classList.add('is-success');
+            sessionStorage.removeItem(SESSION_KEY);
+            window.setTimeout(() => window.location.replace('/login/'), 700);
+        } catch (error) {
+            accountSettingsStatus.textContent = error.message || 'Unable to save changes';
+            accountSettingsStatus.classList.add('is-error');
+            saveAccountSettings.disabled = false;
         }
     }
 
@@ -2569,6 +2631,7 @@
     });
     ticketCreateForm?.addEventListener('submit', createTicket);
     ticketReplyForm?.addEventListener('submit', replyToTicket);
+    accountSettingsForm?.addEventListener('submit', saveAccountProfile);
     refreshTickets?.addEventListener('click', loadTicketHistory);
     backToTickets?.addEventListener('click', () => {
         window.location.hash = 'tickets';

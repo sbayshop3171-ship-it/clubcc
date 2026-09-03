@@ -130,13 +130,14 @@
                     <button class="icon-button" id="fullscreenToggle" type="button" aria-label="Toggle fullscreen">
                         <iconify-icon icon="mdi:fullscreen" width="22" height="22"></iconify-icon>
                     </button>
-                    <a class="icon-button" href="/admin/" aria-label="Admin ticker settings">
+                    <a class="icon-button" href="/settings" aria-label="Account settings" title="Account settings">
                         <iconify-icon icon="mdi:cog-outline" width="20" height="20"></iconify-icon>
                     </a>
                     <div class="wallet-menu">
                         <button class="wallet-badge" id="walletBalance" type="button" aria-expanded="false" aria-controls="walletDropdown">$2.00</button>
                         <div class="wallet-dropdown" id="walletDropdown" hidden>
                             <a href="#deposit" data-wallet-deposit>Deposit</a>
+                            <a href="/settings">Account settings</a>
                             <button id="logoutButton" type="button">Logout</button>
                         </div>
                     </div>
@@ -643,6 +644,61 @@
                                 <tbody id="virtualCardsTableBody"><tr><td colspan="9" class="empty-history">No virtual cards yet.</td></tr></tbody>
                             </table>
                         </div>
+                    </section>
+                </section>
+
+                <section class="dashboard-view" id="settingsView" data-dashboard-view="settings" hidden>
+                    <div class="settings-page-heading">
+                        <div>
+                            <p class="admin-kicker">Account</p>
+                            <h1>Profile &amp; Settings</h1>
+                            <p class="settings-page-intro">Manage your account details and password.</p>
+                        </div>
+                    </div>
+
+                    <section class="profile-settings-grid">
+                        <article class="profile-details-card glass-card dashboard-module">
+                            <div class="profile-settings-avatar-wrap">
+                                <img class="profile-settings-avatar" src="/images/man-logo.png" alt="">
+                                <span class="profile-online-dot" aria-hidden="true"></span>
+                            </div>
+                            <div class="profile-details-copy">
+                                <p class="admin-kicker">Current account</p>
+                                <h2 id="settingsUsername">Loading...</h2>
+                                <dl class="profile-details-list">
+                                    <div><dt>Registered</dt><dd id="settingsRegistered">-</dd></div>
+                                    <div><dt>Latest activity</dt><dd id="settingsLastActive">-</dd></div>
+                                </dl>
+                            </div>
+                        </article>
+
+                        <form class="account-settings-form glass-card dashboard-module" id="accountSettingsForm" autocomplete="off">
+                            <div class="section-heading">
+                                <div>
+                                    <p class="admin-kicker">Security</p>
+                                    <h2>Account edit</h2>
+                                </div>
+                            </div>
+                            <label for="settingsUsernameInput">Username
+                                <input id="settingsUsernameInput" name="username" type="text" readonly>
+                            </label>
+                            <label for="currentPasswordInput">Current password <span aria-hidden="true">*</span>
+                                <input id="currentPasswordInput" name="current_password" type="password" autocomplete="current-password" required>
+                            </label>
+                            <div class="account-password-grid">
+                                <label for="newPasswordInput">New password <span aria-hidden="true">*</span>
+                                    <input id="newPasswordInput" name="new_password" type="password" minlength="8" autocomplete="new-password" required>
+                                </label>
+                                <label for="confirmPasswordInput">Confirm new password <span aria-hidden="true">*</span>
+                                    <input id="confirmPasswordInput" name="confirm_new_password" type="password" minlength="8" autocomplete="new-password" required>
+                                </label>
+                            </div>
+                            <p class="settings-form-hint">Use at least 8 characters. Changing your password will sign you out everywhere.</p>
+                            <p class="settings-status" id="accountSettingsStatus" role="status" aria-live="polite"></p>
+                            <div class="settings-actions">
+                                <button class="admin-button admin-button-primary" id="saveAccountSettings" type="submit">Save changes</button>
+                            </div>
+                        </form>
                     </section>
                 </section>
             </section>
