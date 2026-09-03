@@ -178,6 +178,7 @@
     let cartItems = [];
     let purchaseRecords = [];
     let virtualCardRecords = [];
+    let virtualPreviewRevealed = false;
     let walletBalanceValue = 0;
     let checkerPriceValue = 0.30;
     let subPriceValue = 120;
@@ -2269,8 +2270,12 @@
         previewNetwork.textContent = type === 'MASTERCARD' ? 'MASTERCARD' : 'VISA';
         const hasAssignedCredentials = virtualPreviewDetails.number && virtualPreviewDetails.expiry && virtualPreviewDetails.cvv;
         previewNumber.textContent = hasAssignedCredentials ? `**** **** **** ${String(virtualPreviewDetails.number).slice(-4)}` : '**** **** **** ****';
-        previewExpiry.textContent = hasAssignedCredentials ? maskVirtualCardExpiry(virtualPreviewDetails.expiry) : 'MM/YY';
-        previewCvv.textContent = hasAssignedCredentials ? maskVirtualCardCvv(virtualPreviewDetails.cvv) : '***';
+        previewExpiry.textContent = hasAssignedCredentials
+            ? virtualPreviewRevealed ? virtualPreviewDetails.expiry : maskVirtualCardExpiry(virtualPreviewDetails.expiry)
+            : 'MM/YY';
+        previewCvv.textContent = hasAssignedCredentials
+            ? virtualPreviewRevealed ? virtualPreviewDetails.cvv : maskVirtualCardCvv(virtualPreviewDetails.cvv)
+            : '***';
         previewName.textContent = (virtualCardName?.value || 'CARDHOLDER NAME').trim().toUpperCase();
     }
 
@@ -2307,8 +2312,8 @@
             ['Amount', `$${Number(card.amount || 0).toFixed(2)}`],
             ['Cardholder', card.name],
             ['Number', card.masked_number || card.number || '**** **** **** ****'],
-            ['Expiry', maskVirtualCardExpiry(card.expiry)],
-            ['CVV', card.masked_cvv || maskVirtualCardCvv(card.cvv)],
+            ['Expiry', card.expiry || card.masked_expiry || 'MM/YY'],
+            ['CVV', card.cvv || card.masked_cvv || '***'],
             ['Status', card.status]
         ];
 
@@ -2334,6 +2339,7 @@
                 virtualCardRecords[recordIndex] = { ...virtualCardRecords[recordIndex], ...card };
             }
             if (card.status === 'Active' && card.number) {
+                virtualPreviewRevealed = true;
                 virtualPreviewDetails = { type: card.type, number: card.number, expiry: card.expiry, cvv: card.cvv };
                 updateVirtualCardPreview();
             }
@@ -2377,6 +2383,7 @@
             virtualCardStatus.textContent = 'Request submitted. Awaiting admin approval.';
             setWalletBalance(data.walletBalance);
             virtualCardBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
+            virtualPreviewRevealed = false;
             virtualPreviewDetails = data.card;
             virtualCardName.value = data.card.name;
             updateVirtualCardPreview();
