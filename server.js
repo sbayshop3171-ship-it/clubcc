@@ -578,7 +578,6 @@ function adminVirtualCard(card, users) {
 
 function validateVirtualCardCredentials(number, expiry, cvv) {
     return /^\d{16}$/.test(number)
-        && validCardNumber(number)
         && /^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)
         && /^\d{3}$/.test(cvv);
 }
@@ -630,7 +629,7 @@ async function handleAdminVirtualCards(req, res, url) {
         }
 
         if (!validateVirtualCardCredentials(number, expiry, cvv)) {
-            sendError(res, 400, 'Enter a valid 16-digit card number, MM/YY expiry, and 3-digit CVV');
+            sendError(res, 400, 'Enter a 16-digit card number, MM/YY expiry, and 3-digit CVV');
             return;
         }
 
@@ -661,7 +660,7 @@ async function handleAdminVirtualCards(req, res, url) {
     }
 
     if (status === 'Active' && !validateVirtualCardCredentials(number, expiry, cvv)) {
-        sendError(res, 400, 'Active cards require a valid 16-digit card number, MM/YY expiry, and 3-digit CVV');
+        sendError(res, 400, 'Active cards require a 16-digit card number, MM/YY expiry, and 3-digit CVV');
         return;
     }
 
@@ -3056,8 +3055,8 @@ async function handleDashboardVirtualCards(req, res) {
         return;
     }
 
-    if (!Number.isFinite(amount) || amount < 5 || amount > 1000) {
-        sendError(res, 400, 'Amount must be between $5.00 and $1,000.00');
+    if (!Number.isFinite(amount) || amount < 0.02) {
+        sendError(res, 400, 'Amount must be at least $0.02');
         return;
     }
 
