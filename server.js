@@ -515,6 +515,22 @@ function generateVirtualCardNumber(type) {
 }
 
 function publicVirtualCard(card) {
+    const number = String(card.number || '');
+
+    return {
+        id: card.id,
+        type: card.type,
+        masked_number: `**** **** **** ${number.slice(-4)}`,
+        expiry: card.expiry,
+        masked_cvv: '***',
+        name: card.name,
+        amount: card.amount,
+        status: card.status,
+        createdAt: card.createdAt
+    };
+}
+
+function privateVirtualCard(card) {
     return {
         id: card.id,
         type: card.type,
@@ -532,7 +548,7 @@ function adminVirtualCard(card, users) {
     const owner = users.find((user) => user.id === card.userId);
 
     return {
-        ...publicVirtualCard(card),
+        ...privateVirtualCard(card),
         userId: card.userId,
         username: owner?.username || `User #${card.userId}`,
         email: owner?.email || owner?.username || `User #${card.userId}`
@@ -2939,8 +2955,29 @@ async function handleDashboardVirtualCards(req, res) {
 
     jsonResponse(res, 201, {
         ok: true,
-        card: publicVirtualCard(card),
+        card: privateVirtualCard(card),
         walletBalance: userBalance(storedUser)
+    });
+}
+
+function handleRevealVirtualCard(req, res, cardId) {
+    const session = getSessionFromRequest(req);
+
+    if (!session) {
+        sendError(res, 401, 'No active session');
+        return;
+    }
+
+    const card = readVirtualCards().cards.find((entry) => entry.id === Number(cardId) && entry.userId === session.user.id);
+
+    if (!card) {
+        sendError(res, 404, 'Virtual card not found');
+        return;
+    }
+
+    jsonResponse(res, 200, {
+        ok: true,
+        card: privateVirtualCard(card)
     });
 }
 
@@ -3473,7 +3510,13 @@ async function handleRequest(req, res) {
             return;
         }
 
-        if ((req.method === 'GET' || req.method === 'POST') && url.pathname === '/api/dashboard/virtual-cards') {
+        const revealVirtualCardMatch = url.pathname.match(/^\/api\/(?:dashboard\/)?virtual-cards\/(\d+)\/reveal$/);
+        if (req.method === 'GET' && revealVirtualCardMatch) {
+            handleRevealVirtualCard(req, res, revealVirtualCardMatch[1]);
+            return;
+        }
+
+        if ((req.method === 'GET' || req.method === 'POST') && (url.pathname === '/api/dashboard/virtual-cards' || url.pathname === '/api/virtual-cards')) {
             await handleDashboardVirtualCards(req, res);
             return;
         }

@@ -2232,11 +2232,11 @@
                 <td>${escapeHtml(card.type)}</td>
                 <td>$${Number(card.amount).toFixed(2)}</td>
                 <td>${escapeHtml(card.name)}</td>
-                <td class="virtual-card-sensitive" data-card-number="${escapeHtml(card.number)}">**** **** **** ****</td>
+                <td class="virtual-card-sensitive" data-card-number="${escapeHtml(card.masked_number || '**** **** **** ****')}" data-masked-number="${escapeHtml(card.masked_number || '**** **** **** ****')}">${escapeHtml(card.masked_number || '**** **** **** ****')}</td>
                 <td>${escapeHtml(card.expiry)}</td>
-                <td class="virtual-card-sensitive" data-card-cvv="${escapeHtml(card.cvv || '')}">***</td>
+                <td class="virtual-card-sensitive" data-card-cvv="***">${escapeHtml(card.masked_cvv || '***')}</td>
                 <td><span class="deposit-status is-approved">${escapeHtml(card.status)}</span></td>
-                <td><button class="admin-button" type="button" data-view-virtual-card="${escapeHtml(card.id)}">View</button></td>
+                <td><button class="admin-button virtual-card-reveal-button" type="button" data-view-virtual-card="${escapeHtml(card.id)}" aria-label="Reveal card details" title="Reveal card details"><iconify-icon icon="mdi:eye-outline" width="17" height="17"></iconify-icon></button></td>
             </tr>
         `).join('');
     }
@@ -2264,8 +2264,9 @@
             virtualCardStatus.textContent = 'Card created successfully';
             setWalletBalance(data.walletBalance);
             virtualCardBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
-            virtualCardName.value = '';
-            updateVirtualCardPreview({ regenerate: true });
+            virtualPreviewDetails = data.card;
+            virtualCardName.value = data.card.name;
+            updateVirtualCardPreview();
             await loadVirtualCards();
         } catch (error) {
             virtualCardStatus.textContent = error.message || 'Unable to create card';
@@ -2744,7 +2745,7 @@
             closePurchaseDetails();
         }
     });
-    virtualCardsTableBody?.addEventListener('click', (event) => {
+    virtualCardsTableBody?.addEventListener('click', async (event) => {
         const button = event.target.closest('[data-view-virtual-card]');
         if (!button) return;
 
@@ -2752,12 +2753,28 @@
         const numberCell = row?.querySelector('.virtual-card-sensitive');
         const cvvCell = row?.querySelector('[data-card-cvv]');
         if (!numberCell || !cvvCell) return;
-        const visible = numberCell.dataset.visible === 'true';
-        numberCell.textContent = visible ? '**** **** **** ****' : formatVirtualCardNumber(numberCell.dataset.cardNumber);
-        cvvCell.textContent = visible ? '***' : cvvCell.dataset.cardCvv;
-        numberCell.dataset.visible = String(!visible);
-        cvvCell.dataset.visible = String(!visible);
-        button.textContent = visible ? 'View' : 'Hide';
+        if (button.disabled) return;
+
+        button.disabled = true;
+        try {
+            const data = await apiGet(`/dashboard/virtual-cards/${encodeURIComponent(button.dataset.viewVirtualCard)}/reveal`);
+            numberCell.textContent = formatVirtualCardNumber(data.card.number);
+            cvvCell.textContent = data.card.cvv;
+            button.innerHTML = '<iconify-icon icon="mdi:eye-off-outline" width="17" height="17"></iconify-icon>';
+            button.setAttribute('aria-label', 'Hide card details');
+            window.setTimeout(() => {
+                numberCell.textContent = numberCell.dataset.maskedNumber;
+                cvvCell.textContent = '***';
+                button.innerHTML = '<iconify-icon icon="mdi:eye-outline" width="17" height="17"></iconify-icon>';
+                button.setAttribute('aria-label', 'Reveal card details');
+                button.disabled = false;
+            }, 10000);
+        } catch (error) {
+            button.disabled = false;
+            if (error.message !== 'Session expired' && virtualCardStatus) {
+                virtualCardStatus.textContent = error.message || 'Unable to reveal card details';
+            }
+        }
     });
     cardTableBody?.addEventListener('click', (event) => {
         const button = event.target.closest('[data-add-to-cart]');
