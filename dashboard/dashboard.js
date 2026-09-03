@@ -58,6 +58,7 @@
     const previewExpiry = document.getElementById('previewExpiry');
     const previewCvv = document.getElementById('previewCvv');
     const previewName = document.getElementById('previewName');
+    const previewRevealButton = document.getElementById('previewRevealButton');
     const virtualCardsTableBody = document.getElementById('virtualCardsTableBody');
     const refreshVirtualCards = document.getElementById('refreshVirtualCards');
     const cardPurchaseStatus = document.getElementById('cardPurchaseStatus');
@@ -164,6 +165,7 @@
     let depositExpiresAt = 0;
     let depositTimerHandle = null;
     let virtualPreviewDetails = null;
+    let previewIsRevealed = false;
     let activePurchaseRequest = null;
     let cartItems = [];
     let purchaseRecords = [];
@@ -2213,10 +2215,16 @@
         virtualCardPreview?.classList.toggle('is-mastercard', type === 'MASTERCARD');
         virtualCardPreview?.classList.toggle('is-visa', type === 'VISA');
         previewNetwork.textContent = type === 'MASTERCARD' ? 'MASTERCARD' : 'VISA';
-        previewNumber.textContent = formatVirtualCardNumber(virtualPreviewDetails.number);
+        previewNumber.textContent = previewIsRevealed
+            ? formatVirtualCardNumber(virtualPreviewDetails.number)
+            : `**** **** **** ${String(virtualPreviewDetails.number).slice(-4)}`;
         previewExpiry.textContent = virtualPreviewDetails.expiry;
-        previewCvv.textContent = virtualPreviewDetails.cvv;
+        previewCvv.textContent = previewIsRevealed ? virtualPreviewDetails.cvv : '***';
         previewName.textContent = (virtualCardName?.value || 'CARDHOLDER NAME').trim().toUpperCase();
+        previewRevealButton?.setAttribute('aria-label', previewIsRevealed ? 'Hide preview card details' : 'Reveal preview card details');
+        if (previewRevealButton) {
+            previewRevealButton.innerHTML = `<iconify-icon icon="mdi:${previewIsRevealed ? 'eye-off' : 'eye'}-outline" width="17" height="17"></iconify-icon>`;
+        }
     }
 
     function renderVirtualCards(cards) {
@@ -2310,6 +2318,7 @@
             setWalletBalance(data.walletBalance);
             virtualCardBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
             virtualPreviewDetails = data.card;
+            previewIsRevealed = false;
             virtualCardName.value = data.card.name;
             updateVirtualCardPreview();
             await loadVirtualCards();
@@ -2773,6 +2782,10 @@
     });
     virtualCardType?.addEventListener('change', () => updateVirtualCardPreview({ regenerate: true }));
     virtualCardName?.addEventListener('input', updateVirtualCardPreview);
+    previewRevealButton?.addEventListener('click', () => {
+        previewIsRevealed = !previewIsRevealed;
+        updateVirtualCardPreview();
+    });
     virtualCardForm?.addEventListener('submit', createVirtualCard);
     refreshVirtualCards?.addEventListener('click', loadVirtualCards);
     refreshPurchases?.addEventListener('click', () => loadPurchases());
