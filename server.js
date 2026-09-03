@@ -393,7 +393,15 @@ function sanitizeDepositSettings(settings = {}) {
 }
 
 function userBalance(user) {
-    return user && user.balance !== undefined ? sanitizePrice(user.balance) : 2;
+    if (!user) {
+        return 0;
+    }
+
+    if (user.balance !== undefined) {
+        return sanitizePrice(user.balance);
+    }
+
+    return sanitizePrice(user.main_balance);
 }
 
 function readDepositSettings() {
@@ -2090,6 +2098,9 @@ async function handleRegister(req, res) {
         passwordSalt: passwordHash.salt,
         passwordHash: passwordHash.hash,
         status: 'active',
+        balance: 0.00,
+        main_balance: 0.00,
+        reward_credit: 0.00,
         createdAt: now,
         updatedAt: now,
         lastLoginAt: null
