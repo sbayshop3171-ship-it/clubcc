@@ -1369,9 +1369,12 @@ body.cards-view-active .cards-table tr:hover td {
 }
 
 .virtual-card-preview-note {
-    margin: 12px 0 0;
+    max-width: 470px;
+    margin: 20px auto 0;
     color: var(--muted);
     font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
 }
 
 .virtual-card-form {
