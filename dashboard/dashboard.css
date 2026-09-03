@@ -2226,8 +2226,16 @@ body.cards-view-active .cards-table tr:hover td {
 }
 
 .account-settings-form input[readonly] {
-    color: var(--muted);
+    color: #eef6fb !important;
+    -webkit-text-fill-color: #eef6fb;
+    opacity: 1;
+    background: rgba(2, 13, 22, 0.78);
     cursor: not-allowed;
+}
+
+.account-settings-form input[readonly]:-webkit-autofill {
+    -webkit-text-fill-color: #eef6fb;
+    -webkit-box-shadow: 0 0 0 1000px rgba(2, 13, 22, 0.78) inset;
 }
 
 .account-settings-form .admin-button:disabled {
