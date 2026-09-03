@@ -395,11 +395,18 @@ function sanitizeDepositSettings(settings = {}) {
         };
     }).filter((method) => method.address);
 
+    const tiers = Array.isArray(settings.bonusTiers) ? settings.bonusTiers : DEFAULT_DEPOSIT_SETTINGS.bonusTiers;
+    const safeTiers = tiers.map((tier) => ({
+        threshold: sanitizePrice(tier.threshold),
+        percent: Math.min(1000, Math.max(0, Number(tier.percent) || 0)),
+        active: tier.active !== false
+    })).filter((tier) => tier.threshold >= 0 && tier.percent > 0);
+
     return {
         methods: safeMethods.length ? safeMethods : DEFAULT_DEPOSIT_SETTINGS.methods,
         minimumAmount: sanitizePrice(settings.minimumAmount || DEFAULT_DEPOSIT_SETTINGS.minimumAmount),
         paymentWindowMinutes: Math.min(180, Math.max(5, Number(settings.paymentWindowMinutes) || DEFAULT_DEPOSIT_SETTINGS.paymentWindowMinutes)),
-        bonusTiers: DEFAULT_DEPOSIT_SETTINGS.bonusTiers
+        bonusTiers: safeTiers
     };
 }
 
@@ -2748,7 +2755,7 @@ function currentUserForSession(session) {
 
 function bonusForAmount(amount) {
     const tier = readDepositSettings().bonusTiers
-        .filter((candidate) => amount > candidate.threshold)
+        .filter((candidate) => candidate.active !== false && amount >= candidate.threshold)
         .sort((left, right) => right.threshold - left.threshold)[0];
 
     return tier ? amount * tier.percent / 100 : 0;
@@ -3328,8 +3335,8 @@ async function handleCreateDeposit(req, res) {
         createdAt: new Date().toISOString(),
         method: method.name,
         amount,
-        bonus: 0,
-        value: amount,
+        bonus: Number(bonusForAmount(amount).toFixed(2)),
+        value: Number((amount + bonusForAmount(amount)).toFixed(2)),
         wallet: method.address,
         txid: sanitizeText(body.txid, '', 180),
         screenshot: sanitizeText(body.screenshot, '', 500000),
@@ -3401,8 +3408,6 @@ function handleAdminDeposits(req, res) {
         deposit.note = sanitizeText(body.note, '', 240);
 
         if (deposit.status === 'Approved') {
-            deposit.bonus = Number(bonusForAmount(deposit.amount).toFixed(2));
-            deposit.value = Number((deposit.amount + deposit.bonus).toFixed(2));
             const db = readDatabase();
             const user = db.users.find((candidate) => candidate.id === deposit.userId);
 

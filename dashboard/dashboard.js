@@ -2169,7 +2169,7 @@
             </button>
         `).join('');
         bonusTiers.innerHTML = depositSettings.bonusTiers.map((tier) => `
-            <div><span>Over than $${Number(tier.threshold).toLocaleString()}</span><strong>+${escapeHtml(tier.percent)}% Bonus</strong></div>
+            <div><span>From $${Number(tier.threshold).toLocaleString()}</span><strong>+${escapeHtml(tier.percent)}% Bonus</strong></div>
         `).join('');
         cryptoTabs.querySelectorAll('.payment-tab').forEach((tab) => {
             tab.addEventListener('click', () => selectDepositMethod(tab.dataset.methodId));

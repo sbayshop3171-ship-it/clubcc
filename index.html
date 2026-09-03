@@ -961,6 +961,10 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                                 <div class="col-md-4"><label class="form-label" for="minimumDepositInput">Minimum deposit ($)</label><input class="form-control" id="minimumDepositInput" data-payment-lock type="number" min="0" step="0.01" disabled></div>
                                 <div class="col-md-4"><label class="form-label" for="paymentWindowInput">Payment window (minutes)</label><input class="form-control" id="paymentWindowInput" data-payment-lock type="number" min="5" max="180" disabled></div>
                             </div>
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">Deposit Bonus Tiers</h6><button class="btn btn-outline-primary btn-sm" id="addBonusTier" data-payment-lock type="button" disabled>Add tier</button></div>
+                                <div id="adminBonusTiers" class="d-grid gap-2"></div>
+                            </div>
                             <div id="adminPaymentMethods" class="d-grid gap-3"></div>
                             <div class="d-flex justify-content-end mt-4"><button class="btn btn-primary" data-payment-lock type="submit" disabled>Save Settings</button></div>
                         </form>

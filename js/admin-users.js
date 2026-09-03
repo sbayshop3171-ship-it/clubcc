@@ -41,6 +41,8 @@
     const minimumDepositInput = document.getElementById('minimumDepositInput');
     const paymentWindowInput = document.getElementById('paymentWindowInput');
     const paymentSettingsStatus = document.getElementById('paymentSettingsStatus');
+    const adminBonusTiers = document.getElementById('adminBonusTiers');
+    const addBonusTier = document.getElementById('addBonusTier');
     const addPaymentMethod = document.getElementById('addPaymentMethod');
     const paymentMasterAdminKey = document.getElementById('paymentMasterAdminKey');
     const unlockPaymentSettings = document.getElementById('unlockPaymentSettings');
@@ -1537,6 +1539,24 @@
         });
     }
 
+    function renderBonusTiers(tiers) {
+        adminBonusTiers.innerHTML = (tiers || []).map((tier, index) => `
+            <div class="row g-2 align-items-end admin-bonus-tier" data-tier-index="${index}">
+                <div class="col-md-5"><label class="form-label">Minimum amount ($)<input class="form-control" data-tier-field="threshold" type="number" min="0" step="0.01" value="${escapeHtml(tier.threshold)}" required ${paymentLockAttribute()}></label></div>
+                <div class="col-md-4"><label class="form-label">Bonus (%)<input class="form-control" data-tier-field="percent" type="number" min="0.01" max="1000" step="0.01" value="${escapeHtml(tier.percent)}" required ${paymentLockAttribute()}></label></div>
+                <div class="col-md-2"><label class="form-check-label"><input class="form-check-input" data-tier-field="active" type="checkbox"${tier.active !== false ? ' checked' : ''} ${paymentLockAttribute()}> Active</label></div>
+                <div class="col-md-1"><button class="btn btn-outline-danger remove-bonus-tier" type="button" ${paymentLockAttribute()}>Remove</button></div>
+            </div>`).join('');
+    }
+
+    function collectBonusTiers() {
+        return [...adminBonusTiers.querySelectorAll('.admin-bonus-tier')].map((element) => ({
+            threshold: Number(element.querySelector('[data-tier-field="threshold"]').value),
+            percent: Number(element.querySelector('[data-tier-field="percent"]').value),
+            active: element.querySelector('[data-tier-field="active"]').checked
+        }));
+    }
+
     async function loadPaymentSettings() {
         setPaymentStatus('Loading');
         try {
@@ -1544,6 +1564,7 @@
             minimumDepositInput.value = data.settings.minimumAmount;
             paymentWindowInput.value = data.settings.paymentWindowMinutes;
             setPaymentLocked(true);
+            renderBonusTiers(data.settings.bonusTiers || []);
             renderPaymentMethods(data.settings.methods || []);
             setPaymentStatus('Locked');
         } catch (error) {
@@ -1571,6 +1592,7 @@
                 body: JSON.stringify({
                     minimumAmount: Number(minimumDepositInput.value),
                     paymentWindowMinutes: Number(paymentWindowInput.value),
+                    bonusTiers: collectBonusTiers(),
                     methods: collectPaymentMethods(),
                     masterAdminKey
                 })
@@ -1612,7 +1634,7 @@
 
     function renderAdminDeposits(deposits) {
         adminDepositBody.innerHTML = deposits.length ? deposits.map((deposit) => `
-            <tr><td>${escapeHtml(deposit.username)} <small>#${escapeHtml(deposit.id)}</small></td><td>$${Number(deposit.amount).toFixed(2)}</td><td>${escapeHtml(deposit.method)}</td>
+            <tr><td>${escapeHtml(deposit.username)} <small>#${escapeHtml(deposit.id)}</small></td><td>$${Number(deposit.amount).toFixed(2)}${deposit.bonus ? ` <small>(+$${Number(deposit.bonus).toFixed(2)} bonus / $${Number(deposit.value).toFixed(2)} total)</small>` : ''}</td><td>${escapeHtml(deposit.method)}</td>
             <td>${deposit.txid ? escapeHtml(deposit.txid.slice(0, 18)) : (deposit.screenshot ? 'Image attached' : '-')}</td><td>${escapeHtml(new Date(deposit.date).toLocaleString())}</td>
             <td><span class="badge badge-${deposit.status === 'Pending' ? 'warning' : deposit.status === 'Approved' ? 'success' : 'danger'}">${escapeHtml(deposit.status)}</span></td>
             <td>${deposit.status === 'Pending' ? `<button class="btn btn-primary btn-sm" data-deposit-action="approve" data-deposit-id="${escapeHtml(deposit.id)}" type="button">Approve</button> <button class="btn btn-danger btn-sm" data-deposit-action="reject" data-deposit-id="${escapeHtml(deposit.id)}" type="button">Reject</button>` : escapeHtml(deposit.note || '-')}</td></tr>`).join('') : '<tr><td colspan="7" class="text-center text-muted py-5">No deposit requests yet.</td></tr>';
@@ -1762,6 +1784,21 @@
         const methods = collectPaymentMethods();
         methods.push({ id: `crypto-${methods.length + 1}`, name: 'New Crypto', symbol: 'CRYPTO', network: '', address: '', qrImage: '', networkNote: '', active: true });
         renderPaymentMethods(methods);
+    });
+    addBonusTier?.addEventListener('click', () => {
+        if (!paymentSettingsUnlocked) {
+            setPaymentStatus('Unlock with Master Key before editing.', 'error');
+            return;
+        }
+
+        const tiers = collectBonusTiers();
+        tiers.push({ threshold: 0, percent: 1, active: true });
+        renderBonusTiers(tiers);
+    });
+    adminBonusTiers?.addEventListener('click', (event) => {
+        if (event.target.closest('.remove-bonus-tier')) {
+            event.target.closest('.admin-bonus-tier').remove();
+        }
     });
     adminPaymentMethods?.addEventListener('click', (event) => {
         if (event.target.closest('.remove-payment-method')) {
