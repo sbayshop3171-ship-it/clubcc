@@ -1344,9 +1344,10 @@ body.cards-view-active .cards-table tr:hover td {
 .virtual-card-preview-note {
     max-width: 470px;
     margin: 20px auto 0;
-    color: var(--muted);
+    color: rgba(255, 255, 255, 0.84);
     font-size: 12px;
-    line-height: 1.5;
+    font-weight: 700;
+    line-height: 1.6;
     text-align: center;
 }
 
@@ -1565,6 +1566,7 @@ body.cards-view-active .cards-table tr:hover td {
 }
 
 .deposit-status.is-pending { color: #ffe5a3; background: rgba(255, 181, 45, 0.16); }
+.deposit-status.is-active { color: #b8ddff; background: rgba(45, 156, 255, 0.2); }
 .deposit-status.is-completed { color: #abffcb; background: rgba(0, 224, 103, 0.14); }
 .deposit-status.is-rejected { color: #ffb4bb; background: rgba(255, 38, 53, 0.14); }
 

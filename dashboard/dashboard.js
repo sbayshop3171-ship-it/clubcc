@@ -2295,7 +2295,7 @@
                 <td class="virtual-card-sensitive">${escapeHtml(card.masked_number || '**** **** **** ****')}</td>
                 <td>${escapeHtml(maskVirtualCardExpiry(card.expiry))}</td>
                 <td class="virtual-card-sensitive">${escapeHtml(card.masked_cvv || maskVirtualCardCvv(card.cvv))}</td>
-                <td><span class="deposit-status is-approved">${escapeHtml(card.status)}</span></td>
+                <td><span class="deposit-status is-${escapeHtml(String(card.status || '').toLowerCase())}">${escapeHtml(card.status)}</span></td>
                 <td><button class="admin-button" type="button" data-view-card="${escapeHtml(card.id)}">View</button></td>
             </tr>
         `).join('');
