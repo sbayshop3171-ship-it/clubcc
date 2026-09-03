@@ -1744,7 +1744,10 @@
 
         renderFeed(false);
         renderOnlineCount(data.onlineUsers || 0);
-        renderDashboardContent(data.dashboardContent || currentSettings?.dashboardContent);
+        renderDashboardContent({
+            ...(data.dashboardContent || currentSettings?.dashboardContent),
+            virtualCardNote: data.settings?.virtualCardNote || data.dashboardContent?.virtualCardNote || currentSettings?.virtualCardNote
+        });
         populateSettings(currentSettings, Boolean(options.forceSettings));
         startTicker();
 

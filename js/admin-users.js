@@ -580,7 +580,7 @@
             .filter((link) => link.label && link.text);
     }
 
-    function populateDashboardContent(content = {}, telegramUrl = '') {
+    function populateDashboardContent(content = {}, telegramUrl = '', virtualCardNote = '') {
         if (attentionTitleInput) {
             attentionTitleInput.value = content.attentionTitle || 'Attention';
         }
@@ -601,7 +601,7 @@
             noticeParagraphsInput.value = paragraphsToTextarea(content.noticeParagraphs);
         }
         if (virtualCardNoteInput) {
-            virtualCardNoteInput.value = content.virtualCardNote || 'Your card details are generated securely for this account.';
+            virtualCardNoteInput.value = virtualCardNote || content.virtualCardNote || 'Your card details are generated securely for this account.';
         }
         if (telegramUrlInput) {
             telegramUrlInput.value = telegramUrl;
@@ -1118,7 +1118,7 @@
             onlineCountInput.value = value ?? 0;
             renderOnlinePreview(value);
             setOnlineStatus('Synced', 'success');
-            populateDashboardContent(data.settings?.dashboardContent, data.settings?.telegramUrl);
+            populateDashboardContent(data.settings?.dashboardContent, data.settings?.telegramUrl, data.settings?.virtualCardNote);
         } catch (error) {
             setOnlineStatus(error.message || 'Offline', 'error');
             setContentStatus(error.message || 'Offline', 'error');
@@ -1189,12 +1189,13 @@
                 },
                 body: JSON.stringify({
                     dashboardContent,
-                    telegramUrl: dashboardContent.telegramUrl
+                    telegramUrl: dashboardContent.telegramUrl,
+                    virtualCardNote: dashboardContent.virtualCardNote
                 })
             });
             const data = await adminJson(response, 'Unable to save notices');
 
-            populateDashboardContent(data.settings?.dashboardContent, data.settings?.telegramUrl);
+            populateDashboardContent(data.settings?.dashboardContent, data.settings?.telegramUrl, data.settings?.virtualCardNote);
             setContentStatus('Saved', 'success');
         } catch (error) {
             setContentStatus(error.message || 'Save failed', 'error');

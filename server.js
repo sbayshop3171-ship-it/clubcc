@@ -115,6 +115,7 @@ const PUBLIC_ROUTES = new Map([
 ]);
 const DEFAULT_TICKER_SETTINGS = {
     telegramUrl: 'https://t.me/clubcc_support',
+    virtualCardNote: 'Your card details are generated securely for this account.',
     onlineBase: 78,
     autoFluctuate: false,
     fluctuationRange: 0,
@@ -1301,6 +1302,7 @@ function sanitizeDashboardContent(content = {}) {
 function sanitizeTickerSettings(settings = {}) {
     return {
         telegramUrl: sanitizeTelegramUrl(settings.telegramUrl, DEFAULT_TICKER_SETTINGS.telegramUrl),
+        virtualCardNote: sanitizeText(settings.virtualCardNote || settings.dashboardContent?.virtualCardNote, DEFAULT_TICKER_SETTINGS.virtualCardNote, 240),
         onlineBase: clampNumber(settings.onlineBase, DEFAULT_TICKER_SETTINGS.onlineBase, 0, 100000),
         autoFluctuate: Boolean(settings.autoFluctuate),
         fluctuationRange: clampNumber(settings.fluctuationRange, DEFAULT_TICKER_SETTINGS.fluctuationRange, 0, 500),
@@ -1940,7 +1942,10 @@ function createDashboardNews(session) {
         cartCount: cartForUser(cartStore, user.id).length,
         checkerSettings: readCheckerSettings(),
         settings,
-        dashboardContent: settings.dashboardContent,
+        dashboardContent: {
+            ...settings.dashboardContent,
+            virtualCardNote: settings.virtualCardNote
+        },
         tickerTotal: itemCount,
         items
     };
@@ -1958,7 +1963,8 @@ async function handleTickerSettings(req, res) {
     const body = await parseBody(req);
     const settings = writeTickerSettings({
         ...readTickerSettings(),
-        ...body
+        ...body,
+        virtualCardNote: body.virtualCardNote || body.dashboardContent?.virtualCardNote
     });
 
     jsonResponse(res, 200, {
