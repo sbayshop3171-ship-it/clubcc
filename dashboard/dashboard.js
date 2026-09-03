@@ -59,7 +59,6 @@
     const previewExpiry = document.getElementById('previewExpiry');
     const previewCvv = document.getElementById('previewCvv');
     const previewName = document.getElementById('previewName');
-    const previewRevealButton = document.getElementById('previewRevealButton');
     const virtualCardsTableBody = document.getElementById('virtualCardsTableBody');
     const refreshVirtualCards = document.getElementById('refreshVirtualCards');
     const cardPurchaseStatus = document.getElementById('cardPurchaseStatus');
@@ -172,7 +171,6 @@
     let depositExpiresAt = 0;
     let depositTimerHandle = null;
     let virtualPreviewDetails = null;
-    let previewIsRevealed = false;
     let activePurchaseRequest = null;
     let cartItems = [];
     let purchaseRecords = [];
@@ -2256,22 +2254,16 @@
         virtualCardPreview?.classList.toggle('is-mastercard', type === 'MASTERCARD');
         virtualCardPreview?.classList.toggle('is-visa', type === 'VISA');
         previewNetwork.textContent = type === 'MASTERCARD' ? 'MASTERCARD' : 'VISA';
-        previewNumber.textContent = previewIsRevealed
-            ? formatVirtualCardNumber(virtualPreviewDetails.number)
-            : `**** **** **** ${String(virtualPreviewDetails.number).slice(-4)}`;
+        previewNumber.textContent = `**** **** **** ${String(virtualPreviewDetails.number).slice(-4)}`;
         previewExpiry.textContent = virtualPreviewDetails.expiry;
-        previewCvv.textContent = previewIsRevealed ? virtualPreviewDetails.cvv : '***';
+        previewCvv.textContent = '***';
         previewName.textContent = (virtualCardName?.value || 'CARDHOLDER NAME').trim().toUpperCase();
-        previewRevealButton?.setAttribute('aria-label', previewIsRevealed ? 'Hide preview card details' : 'Reveal preview card details');
-        if (previewRevealButton) {
-            previewRevealButton.innerHTML = `<iconify-icon icon="mdi:${previewIsRevealed ? 'eye-off' : 'eye'}-outline" width="17" height="17"></iconify-icon>`;
-        }
     }
 
     function renderVirtualCards(cards) {
         if (!virtualCardsTableBody) return;
         if (!cards.length) {
-            virtualCardsTableBody.innerHTML = '<tr><td colspan="9" class="empty-history">No virtual cards yet.</td></tr>';
+            virtualCardsTableBody.innerHTML = '<tr><td colspan="8" class="empty-history">No virtual cards yet.</td></tr>';
             return;
         }
 
@@ -2281,11 +2273,10 @@
                 <td>${escapeHtml(card.type)}</td>
                 <td>$${Number(card.amount).toFixed(2)}</td>
                 <td>${escapeHtml(card.name)}</td>
-                <td class="virtual-card-sensitive" data-card-number="${escapeHtml(card.masked_number || '**** **** **** ****')}" data-masked-number="${escapeHtml(card.masked_number || '**** **** **** ****')}">${escapeHtml(card.masked_number || '**** **** **** ****')}</td>
+                <td class="virtual-card-sensitive">${escapeHtml(card.masked_number || '**** **** **** ****')}</td>
                 <td>${escapeHtml(card.expiry)}</td>
-                <td class="virtual-card-sensitive" data-card-cvv="***">${escapeHtml(card.masked_cvv || '***')}</td>
+                <td class="virtual-card-sensitive">${escapeHtml(card.masked_cvv || '***')}</td>
                 <td><span class="deposit-status is-approved">${escapeHtml(card.status)}</span></td>
-                <td><button class="admin-button virtual-card-reveal-button" type="button" data-view-virtual-card="${escapeHtml(card.id)}" aria-label="Reveal card details" title="Reveal card details"><iconify-icon icon="mdi:eye-outline" width="17" height="17"></iconify-icon></button></td>
             </tr>
         `).join('');
     }
@@ -2297,51 +2288,6 @@
             if (virtualCardBalance) virtualCardBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
         } catch (error) {
             if (error.message !== 'Session expired' && virtualCardStatus) virtualCardStatus.textContent = error.message;
-        }
-    }
-
-    async function toggleReveal(cardId, button) {
-        const row = button?.closest('tr');
-        const numberCell = row?.querySelector('[data-card-number]');
-        const cvvCell = row?.querySelector('[data-card-cvv]');
-
-        if (!numberCell || !cvvCell || button.disabled) {
-            return;
-        }
-
-        if (button.dataset.revealed === 'true') {
-            numberCell.textContent = numberCell.dataset.maskedNumber;
-            cvvCell.textContent = '***';
-            button.dataset.revealed = 'false';
-            button.innerHTML = '<iconify-icon icon="mdi:eye-outline" width="17" height="17"></iconify-icon>';
-            button.setAttribute('aria-label', 'Reveal card details');
-            return;
-        }
-
-        button.disabled = true;
-        try {
-            const data = await apiGet(`/dashboard/virtual-cards/${encodeURIComponent(cardId)}/reveal`);
-            numberCell.textContent = formatVirtualCardNumber(data.card.number);
-            cvvCell.textContent = data.card.cvv;
-            button.dataset.revealed = 'true';
-            button.innerHTML = '<iconify-icon icon="mdi:eye-off-outline" width="17" height="17"></iconify-icon>';
-            button.setAttribute('aria-label', 'Hide card details');
-            button.disabled = false;
-            window.setTimeout(() => {
-                if (button.dataset.revealed !== 'true') {
-                    return;
-                }
-                numberCell.textContent = numberCell.dataset.maskedNumber;
-                cvvCell.textContent = '***';
-                button.dataset.revealed = 'false';
-                button.innerHTML = '<iconify-icon icon="mdi:eye-outline" width="17" height="17"></iconify-icon>';
-                button.setAttribute('aria-label', 'Reveal card details');
-            }, 10000);
-        } catch (error) {
-            button.disabled = false;
-            if (error.message !== 'Session expired' && virtualCardStatus) {
-                virtualCardStatus.textContent = error.message || 'Unable to reveal card details';
-            }
         }
     }
 
@@ -2359,7 +2305,6 @@
             setWalletBalance(data.walletBalance);
             virtualCardBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
             virtualPreviewDetails = data.card;
-            previewIsRevealed = false;
             virtualCardName.value = data.card.name;
             updateVirtualCardPreview();
             await loadVirtualCards();
@@ -2829,10 +2774,6 @@
     });
     virtualCardType?.addEventListener('change', () => updateVirtualCardPreview({ regenerate: true }));
     virtualCardName?.addEventListener('input', updateVirtualCardPreview);
-    previewRevealButton?.addEventListener('click', () => {
-        previewIsRevealed = !previewIsRevealed;
-        updateVirtualCardPreview();
-    });
     virtualCardForm?.addEventListener('submit', createVirtualCard);
     refreshVirtualCards?.addEventListener('click', loadVirtualCards);
     refreshPurchases?.addEventListener('click', () => loadPurchases());
@@ -2849,11 +2790,6 @@
         if (event.target === purchaseDetailsModal) {
             closePurchaseDetails();
         }
-    });
-    virtualCardsTableBody?.addEventListener('click', (event) => {
-        const button = event.target.closest('[data-view-virtual-card]');
-        if (!button) return;
-        toggleReveal(button.dataset.viewVirtualCard, button);
     });
     cardTableBody?.addEventListener('click', (event) => {
         const button = event.target.closest('[data-add-to-cart]');
