@@ -1623,6 +1623,53 @@ body.cards-view-active .cards-table tr:hover td {
     background: transparent;
 }
 
+.announcement-modal {
+    z-index: 35;
+}
+
+.announcement-dialog {
+    position: relative;
+    width: min(100%, 520px);
+    display: grid;
+    gap: 14px;
+    padding: 32px 28px 28px;
+    border-radius: 6px;
+}
+
+.announcement-dialog .announcement-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.announcement-dialog h2 {
+    margin: 0;
+    color: #f6fbff;
+    font-size: 26px;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.announcement-dialog > p:not(.admin-kicker) {
+    margin: 0;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.6;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.announcement-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.announcement-actions .admin-button {
+    text-decoration: none;
+}
+
 .deposit-form label span {
     font-weight: 500;
 }
@@ -2155,6 +2202,10 @@ body.cards-view-active .cards-table tr:hover td {
 .settings-grid {
     display: grid;
     gap: 16px;
+}
+
+.settings-form-wide {
+    grid-column: 1 / -1;
 }
 
 .settings-grid-compact {

@@ -31,6 +31,7 @@ const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, 'data');
 const DB_PATH = path.join(DATA_DIR, 'users.json');
 const TICKER_SETTINGS_PATH = path.join(DATA_DIR, 'ticker-settings.json');
+const ANNOUNCEMENT_ALERT_PATH = path.join(DATA_DIR, 'announcement-alert.json');
 const CHECKER_SETTINGS_PATH = path.join(DATA_DIR, 'checker-settings.json');
 const SUB_SETTINGS_PATH = path.join(DATA_DIR, 'sub-settings.json');
 const CARDS_PATH = path.join(DATA_DIR, 'cards.json');
@@ -214,6 +215,14 @@ const DEFAULT_TICKER_SETTINGS = {
             'Keep two-factor recovery information private and report suspicious messages immediately.'
         ]
     }
+};
+const DEFAULT_ANNOUNCEMENT_ALERT = {
+    is_enabled: false,
+    title: 'Announcement',
+    message: '',
+    action_text: '',
+    action_link: '#',
+    secondary_text: 'Close'
 };
 
 const sessions = new Map();
@@ -1337,6 +1346,46 @@ function writeTickerSettings(settings) {
     return sanitizedSettings;
 }
 
+function sanitizeAnnouncementLink(value, fallback = '#') {
+    const link = String(value || '').trim();
+
+    if (!link) {
+        return fallback;
+    }
+
+    if (link.startsWith('/') && !link.startsWith('//')) {
+        return link;
+    }
+
+    try {
+        const url = new URL(link);
+        return ['http:', 'https:'].includes(url.protocol) ? url.toString() : fallback;
+    } catch (error) {
+        return fallback;
+    }
+}
+
+function sanitizeAnnouncementAlert(settings = {}) {
+    return {
+        is_enabled: Boolean(settings.is_enabled),
+        title: sanitizeText(settings.title, DEFAULT_ANNOUNCEMENT_ALERT.title, 120),
+        message: sanitizeText(settings.message, DEFAULT_ANNOUNCEMENT_ALERT.message, 2000),
+        action_text: sanitizeText(settings.action_text, DEFAULT_ANNOUNCEMENT_ALERT.action_text, 60),
+        action_link: sanitizeAnnouncementLink(settings.action_link, DEFAULT_ANNOUNCEMENT_ALERT.action_link),
+        secondary_text: sanitizeText(settings.secondary_text, DEFAULT_ANNOUNCEMENT_ALERT.secondary_text, 60)
+    };
+}
+
+function readAnnouncementAlert() {
+    return sanitizeAnnouncementAlert(readJsonStore(ANNOUNCEMENT_ALERT_PATH, DEFAULT_ANNOUNCEMENT_ALERT));
+}
+
+function writeAnnouncementAlert(settings) {
+    const sanitizedSettings = sanitizeAnnouncementAlert(settings);
+    writeJsonStore(ANNOUNCEMENT_ALERT_PATH, sanitizedSettings);
+    return sanitizedSettings;
+}
+
 function sanitizeCheckerSettings(settings = {}) {
     return {
         price: Number(clampNumber(settings.price, DEFAULT_CHECKER_SETTINGS.price, 0, 100000).toFixed(2))
@@ -1914,6 +1963,34 @@ async function handleTickerSettings(req, res) {
         ok: true,
         message: 'Ticker settings saved',
         settings
+    });
+}
+
+async function handleAnnouncementAlertSettings(req, res) {
+    if (req.method === 'GET') {
+        jsonResponse(res, 200, { ok: true, settings: readAnnouncementAlert() });
+        return;
+    }
+
+    const body = await parseBody(req);
+    const settings = writeAnnouncementAlert({ ...readAnnouncementAlert(), ...body });
+
+    jsonResponse(res, 200, {
+        ok: true,
+        message: 'Announcement alert saved',
+        settings
+    });
+}
+
+function handleAnnouncementAlert(req, res) {
+    if (!getSessionFromRequest(req)) {
+        sendError(res, 401, 'No active session');
+        return;
+    }
+
+    jsonResponse(res, 200, {
+        ok: true,
+        alert: readAnnouncementAlert()
     });
 }
 
@@ -3424,6 +3501,14 @@ async function handleRequest(req, res) {
             return;
         }
 
+        if ((req.method === 'GET' || req.method === 'PUT') && url.pathname === '/api/admin/announcement-alert') {
+            if (!requireAdminSession(req, res)) {
+                return;
+            }
+            await handleAnnouncementAlertSettings(req, res);
+            return;
+        }
+
         if (req.method === 'POST' && url.pathname === '/api/admin/logout') {
             handleAdminLogout(req, res);
             return;
@@ -3439,6 +3524,11 @@ async function handleRequest(req, res) {
 
         if (req.method === 'GET' && url.pathname === '/api/session') {
             handleSession(req, res);
+            return;
+        }
+
+        if (req.method === 'GET' && url.pathname === '/api/announcement-alert') {
+            handleAnnouncementAlert(req, res);
             return;
         }
         if (req.method === 'POST' && url.pathname === '/api/user/update-profile') {

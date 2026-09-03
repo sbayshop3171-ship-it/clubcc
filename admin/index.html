@@ -83,6 +83,29 @@
                 </form>
             </section>
 
+            <section class="ticker-admin-card glass-card dashboard-module" aria-labelledby="announcementSettingsTitle">
+                <div class="section-heading">
+                    <h2 id="announcementSettingsTitle">Announcement Alert</h2>
+                    <span class="settings-status" id="announcementSettingsStatus">Loading</span>
+                </div>
+                <form class="settings-form" id="announcementSettingsForm">
+                    <label class="toggle-field">
+                        <input id="announcementEnabledInput" type="checkbox">
+                        <span>Show alert on user dashboard</span>
+                    </label>
+                    <div class="settings-grid settings-grid-wide">
+                        <label>Title<input id="announcementTitleInput" type="text" maxlength="120" placeholder="Announcement title"></label>
+                        <label>Action button text<input id="announcementActionTextInput" type="text" maxlength="60" placeholder="Learn more"></label>
+                        <label>Action button link<input id="announcementActionLinkInput" type="url" maxlength="500" placeholder="/dashboard/#deposit"></label>
+                        <label>Secondary button text<input id="announcementSecondaryTextInput" type="text" maxlength="60" placeholder="Close"></label>
+                        <label class="settings-form-wide">Message / content<textarea id="announcementMessageInput" rows="5" maxlength="2000" placeholder="Write the announcement message..."></textarea></label>
+                    </div>
+                    <div class="settings-actions">
+                        <button class="admin-button admin-button-primary" type="submit">Save announcement</button>
+                    </div>
+                </form>
+            </section>
+
             <section class="activity-card glass-card dashboard-module">
                 <div class="online-badge">
                     <span></span>

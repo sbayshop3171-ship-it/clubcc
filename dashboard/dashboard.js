@@ -1,6 +1,7 @@
 (function () {
     const SESSION_KEY = 'dashlite.auth.session';
     const API_BASE = '/api';
+    const ANNOUNCEMENT_DISMISSED_KEY = 'dashlite.announcement.dismissed';
     const REFRESH_INTERVAL_MS = 30000;
     const DEFAULT_SLIDE_INTERVAL_MS = 5000;
     const VISIBLE_TICKER_ROWS = 2;
@@ -130,6 +131,12 @@
     const settingsUsernameInput = document.getElementById('settingsUsernameInput');
     const accountSettingsStatus = document.getElementById('accountSettingsStatus');
     const saveAccountSettings = document.getElementById('saveAccountSettings');
+    const announcementModal = document.getElementById('announcementModal');
+    const announcementTitle = document.getElementById('announcementTitle');
+    const announcementMessage = document.getElementById('announcementMessage');
+    const announcementAction = document.getElementById('announcementAction');
+    const announcementSecondary = document.getElementById('announcementSecondary');
+    const announcementClose = document.getElementById('announcementClose');
     const tickerSettingsForm = document.getElementById('tickerSettingsForm');
     const settingsStatus = document.getElementById('settingsStatus');
     const resetTickerSettings = document.getElementById('resetTickerSettings');
@@ -1766,6 +1773,34 @@
         }
     }
 
+    async function loadAnnouncementAlert() {
+        try {
+            const data = await apiGet('/announcement-alert');
+            const alert = data.alert;
+
+            if (!alert?.is_enabled || sessionStorage.getItem(ANNOUNCEMENT_DISMISSED_KEY) === 'true') {
+                return;
+            }
+
+            announcementTitle.textContent = alert.title;
+            announcementMessage.textContent = alert.message;
+            announcementAction.textContent = alert.action_text;
+            announcementAction.href = alert.action_link || '#';
+            announcementAction.hidden = !alert.action_text;
+            announcementSecondary.textContent = alert.secondary_text || 'Close';
+            announcementModal.hidden = false;
+        } catch (error) {
+            if (error.message !== 'Session expired') {
+                return;
+            }
+        }
+    }
+
+    function dismissAnnouncementAlert() {
+        sessionStorage.setItem(ANNOUNCEMENT_DISMISSED_KEY, 'true');
+        announcementModal.hidden = true;
+    }
+
     async function saveAccountProfile(event) {
         event.preventDefault();
         const formData = new FormData(accountSettingsForm);
@@ -2577,6 +2612,7 @@
     }
 
     renderSession(session);
+    loadAnnouncementAlert();
     populateCountryOptions();
     showDashboardView(viewFromHash());
     updateVirtualCardPreview({ regenerate: true });
@@ -2687,6 +2723,11 @@
     ticketCreateForm?.addEventListener('submit', createTicket);
     ticketReplyForm?.addEventListener('submit', replyToTicket);
     accountSettingsForm?.addEventListener('submit', saveAccountProfile);
+    announcementClose?.addEventListener('click', dismissAnnouncementAlert);
+    announcementSecondary?.addEventListener('click', dismissAnnouncementAlert);
+    announcementAction?.addEventListener('click', () => {
+        announcementModal.hidden = true;
+    });
     refreshTickets?.addEventListener('click', loadTicketHistory);
     backToTickets?.addEventListener('click', () => {
         window.location.hash = 'tickets';

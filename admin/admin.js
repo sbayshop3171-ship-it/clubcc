@@ -38,6 +38,14 @@
     const twoFactorSecret = document.getElementById('twoFactorSecret');
     const twoFactorCode = document.getElementById('twoFactorCode');
     const twoFactorStatus = document.getElementById('twoFactorStatus');
+    const announcementSettingsForm = document.getElementById('announcementSettingsForm');
+    const announcementEnabledInput = document.getElementById('announcementEnabledInput');
+    const announcementTitleInput = document.getElementById('announcementTitleInput');
+    const announcementMessageInput = document.getElementById('announcementMessageInput');
+    const announcementActionTextInput = document.getElementById('announcementActionTextInput');
+    const announcementActionLinkInput = document.getElementById('announcementActionLinkInput');
+    const announcementSecondaryTextInput = document.getElementById('announcementSecondaryTextInput');
+    const announcementSettingsStatus = document.getElementById('announcementSettingsStatus');
     let pendingTwoFactorSecret = '';
 
     function getStoredSession() {
@@ -251,6 +259,55 @@
         checkerSettingsStatus.textContent = message;
         checkerSettingsStatus.classList.toggle('is-success', type === 'success');
         checkerSettingsStatus.classList.toggle('is-error', type === 'error');
+    }
+
+    function setAnnouncementStatus(message, type = '') {
+        announcementSettingsStatus.textContent = message;
+        announcementSettingsStatus.classList.toggle('is-success', type === 'success');
+        announcementSettingsStatus.classList.toggle('is-error', type === 'error');
+    }
+
+    function populateAnnouncementSettings(settings) {
+        announcementEnabledInput.checked = Boolean(settings.is_enabled);
+        announcementTitleInput.value = settings.title || '';
+        announcementMessageInput.value = settings.message || '';
+        announcementActionTextInput.value = settings.action_text || '';
+        announcementActionLinkInput.value = settings.action_link || '#';
+        announcementSecondaryTextInput.value = settings.secondary_text || 'Close';
+    }
+
+    async function loadAnnouncementSettings() {
+        try {
+            const data = await apiRequest('/admin/announcement-alert');
+            populateAnnouncementSettings(data.settings);
+            setAnnouncementStatus('Synced', 'success');
+        } catch (error) {
+            if (error.message !== 'Session expired') setAnnouncementStatus(error.message || 'Load failed', 'error');
+        }
+    }
+
+    async function saveAnnouncementSettings(event) {
+        event.preventDefault();
+        setAnnouncementStatus('Saving');
+
+        try {
+            const data = await apiRequest('/admin/announcement-alert', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({
+                    is_enabled: announcementEnabledInput.checked,
+                    title: announcementTitleInput.value,
+                    message: announcementMessageInput.value,
+                    action_text: announcementActionTextInput.value,
+                    action_link: announcementActionLinkInput.value,
+                    secondary_text: announcementSecondaryTextInput.value
+                })
+            });
+            populateAnnouncementSettings(data.settings);
+            setAnnouncementStatus('Saved', 'success');
+        } catch (error) {
+            if (error.message !== 'Session expired') setAnnouncementStatus(error.message || 'Save failed', 'error');
+        }
     }
 
     async function loadCheckerSettings() {
@@ -505,6 +562,7 @@
     resetTickerSettings.addEventListener('click', loadSettings);
     paymentSettingsForm.addEventListener('submit', savePaymentSettings);
     twoFactorSettingsForm.addEventListener('submit', saveTwoFactorSettings);
+    announcementSettingsForm.addEventListener('submit', saveAnnouncementSettings);
     twoFactorToggle.addEventListener('change', () => {
         if (twoFactorToggle.checked && !pendingTwoFactorSecret) {
             prepareTwoFactorSetup().catch((error) => setTwoFactorStatus(error.message, 'error'));
@@ -562,5 +620,6 @@
     loadCheckerSettings();
     loadPaymentSettings();
     loadTwoFactorSettings();
+    loadAnnouncementSettings();
     loadAdminDeposits();
 }());
