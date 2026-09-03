@@ -338,6 +338,13 @@ a {
     -webkit-overflow-scrolling: touch;
 }
 
+.dashboard-view,
+.dashboard-module,
+.table-scroll {
+    min-width: 0;
+    max-width: 100%;
+}
+
 .dashboard-backdrop {
     position: fixed;
     inset: 0;
@@ -2962,6 +2969,18 @@ body.cards-view-active .cards-table tr:hover td {
 
     .profile-settings-grid {
         grid-template-columns: 1fr;
+    }
+
+    .virtual-card-workspace {
+        grid-template-columns: 1fr;
+    }
+
+    .virtual-card-preview {
+        margin-inline: auto;
+    }
+
+    .checker-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .settings-grid-compact {
