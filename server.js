@@ -649,10 +649,22 @@ async function handleAdminVirtualCards(req, res, url) {
     const number = sanitizeText(body.number, card.number, 32);
     const expiry = sanitizeText(body.expiry, card.expiry, 12);
     const cvv = sanitizeText(body.cvv, card.cvv, 8);
-    const status = sanitizeChoice(body.status, new Set(['ACTIVE', 'INACTIVE', 'BLOCKED']), card.status)
+    const status = sanitizeChoice(body.status, new Set(['PENDING', 'ACTIVE', 'INACTIVE', 'BLOCKED']), card.status)
         .replace(/^ACTIVE$/, 'Active')
+        .replace(/^PENDING$/, 'Pending')
         .replace(/^INACTIVE$/, 'Inactive')
         .replace(/^BLOCKED$/, 'Blocked');
+
+    if (card.status === 'Pending' && status === 'Pending' && !number && !expiry && !cvv) {
+        if (!name) {
+            sendError(res, 400, 'Cardholder name is required');
+            return;
+        }
+        Object.assign(card, { name, updatedAt: new Date().toISOString() });
+        writeVirtualCards(store);
+        jsonResponse(res, 200, { ok: true, card: adminVirtualCard(card, users) });
+        return;
+    }
 
     if (!name || !number || !expiry || !cvv) {
         sendError(res, 400, 'Card name, number, expiry, and CVV are required');

@@ -730,7 +730,8 @@
                 <td>$${Number(card.amount || 0).toFixed(2)}</td>
                 <td><span class="badge bg-${card.status === 'Active' ? 'success' : card.status === 'Pending' ? 'warning text-dark' : 'secondary'}">${escapeHtml(card.status)}</span></td>
                 <td class="d-flex gap-2">
-                    ${card.status === 'Pending' ? `<button class="btn btn-sm btn-primary" type="button" data-approve-virtual-card="${escapeHtml(card.id)}">Approve Request</button>` : `<button class="btn btn-sm btn-outline-primary" type="button" data-edit-virtual-card="${escapeHtml(card.id)}">Edit</button>`}
+                    ${card.status === 'Pending' ? `<button class="btn btn-sm btn-primary" type="button" data-approve-virtual-card="${escapeHtml(card.id)}">Approve Request</button>` : ''}
+                    <button class="btn btn-sm btn-outline-primary" type="button" data-edit-virtual-card="${escapeHtml(card.id)}">Edit</button>
                     <button class="btn btn-sm btn-outline-danger" type="button" data-delete-virtual-card="${escapeHtml(card.id)}">Delete</button>
                 </td>
             </tr>
