@@ -75,6 +75,7 @@
     const attentionLinksInput = document.getElementById('attentionLinksInput');
     const noticeTitleInput = document.getElementById('noticeTitleInput');
     const noticeParagraphsInput = document.getElementById('noticeParagraphsInput');
+    const virtualCardNoteInput = document.getElementById('virtualCardNoteInput');
     const telegramUrlInput = document.getElementById('telegramUrlInput');
     const reloadDashboardContent = document.getElementById('reloadDashboardContent');
     const saveDashboardContent = document.getElementById('saveDashboardContent');
@@ -599,6 +600,9 @@
         if (noticeParagraphsInput) {
             noticeParagraphsInput.value = paragraphsToTextarea(content.noticeParagraphs);
         }
+        if (virtualCardNoteInput) {
+            virtualCardNoteInput.value = content.virtualCardNote || 'Your card details are generated securely for this account.';
+        }
         if (telegramUrlInput) {
             telegramUrlInput.value = telegramUrl;
         }
@@ -613,6 +617,7 @@
             attentionLinks: textareaToLinks(attentionLinksInput),
             noticeTitle: noticeTitleInput?.value.trim() || 'Important Notice',
             noticeParagraphs: textareaToParagraphs(noticeParagraphsInput),
+            virtualCardNote: virtualCardNoteInput?.value.trim() || 'Your card details are generated securely for this account.',
             telegramUrl: telegramUrlInput?.value.trim() || ''
         };
     }

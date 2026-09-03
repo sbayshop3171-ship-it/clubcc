@@ -50,6 +50,7 @@
     const virtualCardType = document.getElementById('virtualCardType');
     const virtualCardAmount = document.getElementById('virtualCardAmount');
     const virtualCardName = document.getElementById('virtualCardName');
+    const virtualCardPreviewNote = document.getElementById('virtualCardPreviewNote');
     const virtualCardForm = document.getElementById('virtualCardForm');
     const virtualCardStatus = document.getElementById('virtualCardStatus');
     const virtualCardBalance = document.getElementById('virtualCardBalance');
@@ -1583,6 +1584,10 @@
                 .map((paragraph) => `<p>${renderNoticeText(paragraph)}</p>`)
                 .join('');
         }
+
+            if (virtualCardPreviewNote && content.virtualCardNote) {
+                virtualCardPreviewNote.textContent = content.virtualCardNote;
+            }
     }
 
     function visibleTickerItems() {

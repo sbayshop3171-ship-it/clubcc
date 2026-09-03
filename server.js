@@ -213,7 +213,8 @@ const DEFAULT_TICKER_SETTINGS = {
         noticeParagraphs: [
             'Our service never asks for passwords, captcha codes, or payment details outside this website. ONLY use the in-app support ticket system for account help.',
             'Keep two-factor recovery information private and report suspicious messages immediately.'
-        ]
+        ],
+        virtualCardNote: 'Your card details are generated securely for this account.'
     }
 };
 const DEFAULT_ANNOUNCEMENT_ALERT = {
@@ -1292,7 +1293,8 @@ function sanitizeDashboardContent(content = {}) {
         attentionBody: sanitizeText(content.attentionBody, fallback.attentionBody, 260),
         attentionLinks: sanitizeDashboardLinks(content.attentionLinks, fallback.attentionLinks),
         noticeTitle: sanitizeText(content.noticeTitle, fallback.noticeTitle, 60),
-        noticeParagraphs: sanitizeParagraphs(content.noticeParagraphs, fallback.noticeParagraphs)
+        noticeParagraphs: sanitizeParagraphs(content.noticeParagraphs, fallback.noticeParagraphs),
+        virtualCardNote: sanitizeText(content.virtualCardNote, fallback.virtualCardNote, 240)
     };
 }
 
