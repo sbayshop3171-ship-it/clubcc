@@ -385,6 +385,51 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                     </div>
                 </div>
 
+                <div class="card border-0 shadow-sm mb-4 admin-content-card" aria-labelledby="announcementSettingsTitle">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold" id="announcementSettingsTitle">Announcement Alert</span>
+                        <span class="admin-content-status" id="announcementSettingsStatus" role="status" aria-live="polite">Loading</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="announcementSettingsForm" autocomplete="off">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" id="announcementEnabledInput" type="checkbox">
+                                        <label class="form-check-label" for="announcementEnabledInput">Show alert on user dashboard</label>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="announcementTitleInput">Title</label>
+                                    <input class="form-control" id="announcementTitleInput" type="text" maxlength="120" placeholder="Announcement title">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="announcementActionTextInput">Action button text</label>
+                                    <input class="form-control" id="announcementActionTextInput" type="text" maxlength="60" placeholder="Learn more">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="announcementActionLinkInput">Action button link</label>
+                                    <input class="form-control" id="announcementActionLinkInput" type="text" maxlength="500" placeholder="/dashboard/#deposit">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label class="form-label" for="announcementSecondaryTextInput">Secondary button text</label>
+                                    <input class="form-control" id="announcementSecondaryTextInput" type="text" maxlength="60" placeholder="Close">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="announcementMessageInput">Message / content</label>
+                                    <textarea class="form-control" id="announcementMessageInput" rows="4" maxlength="2000" placeholder="Write the announcement message..."></textarea>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <button class="btn btn-dark d-inline-flex align-items-center gap-2" type="submit">
+                                    <iconify-icon icon="mdi:content-save-outline" width="18" height="18"></iconify-icon>
+                                    Save Announcement
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
             </section>
 
             <section id="checkerSection" class="admin-dashboard-section py-4" data-admin-view-panel="checker" hidden>

@@ -78,6 +78,14 @@
     const telegramUrlInput = document.getElementById('telegramUrlInput');
     const reloadDashboardContent = document.getElementById('reloadDashboardContent');
     const saveDashboardContent = document.getElementById('saveDashboardContent');
+    const announcementSettingsForm = document.getElementById('announcementSettingsForm');
+    const announcementEnabledInput = document.getElementById('announcementEnabledInput');
+    const announcementTitleInput = document.getElementById('announcementTitleInput');
+    const announcementMessageInput = document.getElementById('announcementMessageInput');
+    const announcementActionTextInput = document.getElementById('announcementActionTextInput');
+    const announcementActionLinkInput = document.getElementById('announcementActionLinkInput');
+    const announcementSecondaryTextInput = document.getElementById('announcementSecondaryTextInput');
+    const announcementSettingsStatus = document.getElementById('announcementSettingsStatus');
     const adminCardForm = document.getElementById('adminCardForm');
     const adminCardsStatus = document.getElementById('adminCardsStatus');
     const adminCardsCount = document.getElementById('adminCardsCount');
@@ -1192,6 +1200,63 @@
         }
     }
 
+    function setAnnouncementStatus(message, type = '') {
+        if (!announcementSettingsStatus) {
+            return;
+        }
+        announcementSettingsStatus.textContent = message;
+        announcementSettingsStatus.classList.toggle('text-success', type === 'success');
+        announcementSettingsStatus.classList.toggle('text-danger', type === 'error');
+    }
+
+    function populateAnnouncementSettings(settings = {}) {
+        announcementEnabledInput.checked = Boolean(settings.is_enabled);
+        announcementTitleInput.value = settings.title || '';
+        announcementMessageInput.value = settings.message || '';
+        announcementActionTextInput.value = settings.action_text || '';
+        announcementActionLinkInput.value = settings.action_link || '#';
+        announcementSecondaryTextInput.value = settings.secondary_text || 'Close';
+    }
+
+    async function loadAnnouncementSettings() {
+        try {
+            const response = await fetch('/api/admin/announcement-alert', { headers: authHeaders() });
+            const data = await adminJson(response, 'Unable to load announcement settings');
+            populateAnnouncementSettings(data.settings);
+            setAnnouncementStatus('Synced', 'success');
+        } catch (error) {
+            setAnnouncementStatus(error.message || 'Load failed', 'error');
+        }
+    }
+
+    async function saveAnnouncementSettings(event) {
+        event.preventDefault();
+        setAnnouncementStatus('Saving');
+
+        try {
+            const response = await fetch('/api/admin/announcement-alert', {
+                method: 'PUT',
+                headers: {
+                    ...authHeaders(),
+                    'Content-Type': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({
+                    is_enabled: announcementEnabledInput.checked,
+                    title: announcementTitleInput.value,
+                    message: announcementMessageInput.value,
+                    action_text: announcementActionTextInput.value,
+                    action_link: announcementActionLinkInput.value,
+                    secondary_text: announcementSecondaryTextInput.value
+                })
+            });
+            const data = await adminJson(response, 'Unable to save announcement settings');
+            populateAnnouncementSettings(data.settings);
+            setAnnouncementStatus('Saved', 'success');
+        } catch (error) {
+            setAnnouncementStatus(error.message || 'Save failed', 'error');
+        }
+    }
+
     function renderAdminIdentity(session) {
         const username = session?.user?.username || 'admin';
         const issuedAt = session?.issuedAt ? formatDate(session.issuedAt) : 'Active';
@@ -1577,6 +1642,7 @@
 
         if (activeView === 'dashboard') {
             loadDashboardSettings();
+            loadAnnouncementSettings();
         } else if (activeView === 'users') {
             loadUsers();
         } else if (activeView === 'checker') {
@@ -1615,6 +1681,7 @@
         setContentStatus('Unsaved');
     });
     dashboardContentForm?.addEventListener('submit', saveDashboardContentSettings);
+    announcementSettingsForm?.addEventListener('submit', saveAnnouncementSettings);
     reloadDashboardContent?.addEventListener('click', loadDashboardSettings);
     adminCardType?.addEventListener('change', () => {
         updateLogoPreview();
