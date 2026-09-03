@@ -576,10 +576,12 @@ a {
 
 .checker-heading h1 {
     margin-bottom: 0;
+    white-space: nowrap;
 }
 
 .checker-price {
-    padding: 9px 12px;
+    padding: 8px 12px;
+    white-space: nowrap;
     color: #efffe9;
     font-size: 13px;
     font-weight: 900;
@@ -1181,6 +1183,16 @@ body.cards-view-active .cards-table tr:hover td {
 }
 
 @media (max-width: 520px) {
+    .checker-heading {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .checker-heading h1 {
+        font-size: 28px;
+    }
+
     .ssn-filter-form {
         grid-template-columns: 1fr;
     }
