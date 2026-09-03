@@ -1015,10 +1015,6 @@
     }
 
     function viewFromHash() {
-        if (['/settings', '/settings/', '/profile', '/profile/'].includes(window.location.pathname)) {
-            return 'settings';
-        }
-
         const hash = window.location.hash;
 
         if (hash === '#purchases/ssn') {
@@ -1035,7 +1031,11 @@
             return 'tickets';
         }
 
-        return ['cards', 'ssn', 'chicken', 'otp-bypass', 'cart', 'deposit', 'virtual-cards', 'purchases'].includes(requestedView) ? requestedView : 'news';
+        if (['cards', 'ssn', 'chicken', 'otp-bypass', 'cart', 'deposit', 'virtual-cards', 'purchases'].includes(requestedView)) {
+            return requestedView;
+        }
+
+        return ['/settings', '/settings/', '/profile', '/profile/'].includes(window.location.pathname) ? 'settings' : 'news';
     }
 
     function showDashboardView(viewName) {
@@ -2251,6 +2251,51 @@
         }
     }
 
+    async function toggleReveal(cardId, button) {
+        const row = button?.closest('tr');
+        const numberCell = row?.querySelector('[data-card-number]');
+        const cvvCell = row?.querySelector('[data-card-cvv]');
+
+        if (!numberCell || !cvvCell || button.disabled) {
+            return;
+        }
+
+        if (button.dataset.revealed === 'true') {
+            numberCell.textContent = numberCell.dataset.maskedNumber;
+            cvvCell.textContent = '***';
+            button.dataset.revealed = 'false';
+            button.innerHTML = '<iconify-icon icon="mdi:eye-outline" width="17" height="17"></iconify-icon>';
+            button.setAttribute('aria-label', 'Reveal card details');
+            return;
+        }
+
+        button.disabled = true;
+        try {
+            const data = await apiGet(`/dashboard/virtual-cards/${encodeURIComponent(cardId)}/reveal`);
+            numberCell.textContent = formatVirtualCardNumber(data.card.number);
+            cvvCell.textContent = data.card.cvv;
+            button.dataset.revealed = 'true';
+            button.innerHTML = '<iconify-icon icon="mdi:eye-off-outline" width="17" height="17"></iconify-icon>';
+            button.setAttribute('aria-label', 'Hide card details');
+            button.disabled = false;
+            window.setTimeout(() => {
+                if (button.dataset.revealed !== 'true') {
+                    return;
+                }
+                numberCell.textContent = numberCell.dataset.maskedNumber;
+                cvvCell.textContent = '***';
+                button.dataset.revealed = 'false';
+                button.innerHTML = '<iconify-icon icon="mdi:eye-outline" width="17" height="17"></iconify-icon>';
+                button.setAttribute('aria-label', 'Reveal card details');
+            }, 10000);
+        } catch (error) {
+            button.disabled = false;
+            if (error.message !== 'Session expired' && virtualCardStatus) {
+                virtualCardStatus.textContent = error.message || 'Unable to reveal card details';
+            }
+        }
+    }
+
     async function createVirtualCard(event) {
         event.preventDefault();
         virtualCardStatus.textContent = 'Creating...';
@@ -2745,36 +2790,10 @@
             closePurchaseDetails();
         }
     });
-    virtualCardsTableBody?.addEventListener('click', async (event) => {
+    virtualCardsTableBody?.addEventListener('click', (event) => {
         const button = event.target.closest('[data-view-virtual-card]');
         if (!button) return;
-
-        const row = button.closest('tr');
-        const numberCell = row?.querySelector('.virtual-card-sensitive');
-        const cvvCell = row?.querySelector('[data-card-cvv]');
-        if (!numberCell || !cvvCell) return;
-        if (button.disabled) return;
-
-        button.disabled = true;
-        try {
-            const data = await apiGet(`/dashboard/virtual-cards/${encodeURIComponent(button.dataset.viewVirtualCard)}/reveal`);
-            numberCell.textContent = formatVirtualCardNumber(data.card.number);
-            cvvCell.textContent = data.card.cvv;
-            button.innerHTML = '<iconify-icon icon="mdi:eye-off-outline" width="17" height="17"></iconify-icon>';
-            button.setAttribute('aria-label', 'Hide card details');
-            window.setTimeout(() => {
-                numberCell.textContent = numberCell.dataset.maskedNumber;
-                cvvCell.textContent = '***';
-                button.innerHTML = '<iconify-icon icon="mdi:eye-outline" width="17" height="17"></iconify-icon>';
-                button.setAttribute('aria-label', 'Reveal card details');
-                button.disabled = false;
-            }, 10000);
-        } catch (error) {
-            button.disabled = false;
-            if (error.message !== 'Session expired' && virtualCardStatus) {
-                virtualCardStatus.textContent = error.message || 'Unable to reveal card details';
-            }
-        }
+        toggleReveal(button.dataset.viewVirtualCard, button);
     });
     cardTableBody?.addEventListener('click', (event) => {
         const button = event.target.closest('[data-add-to-cart]');
