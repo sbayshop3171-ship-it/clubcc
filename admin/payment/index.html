@@ -43,6 +43,10 @@
                             <label>Minimum deposit ($)<input class="form-control" id="minimumDepositInput" data-payment-lock type="number" min="0" step="0.01" disabled></label>
                             <label>Payment window (minutes)<input class="form-control" id="paymentWindowInput" data-payment-lock type="number" min="5" max="180" disabled></label>
                         </div>
+                        <div class="admin-bonus-settings">
+                            <div class="section-heading"><h2>Deposit Bonus Tiers</h2><button class="admin-button btn" id="addBonusTier" data-payment-lock type="button" disabled>Add tier</button></div>
+                            <div id="adminBonusTiers" class="admin-bonus-tiers"></div>
+                        </div>
                         <div id="adminPaymentMethods" class="admin-payment-methods"></div>
                         <div class="settings-actions"><button class="admin-button admin-button-primary btn btn-primary" id="savePaymentSettings" data-payment-lock type="submit" disabled>Save Settings</button><button class="admin-button btn" id="addPaymentMethod" data-payment-lock type="button" disabled>Add gateway</button></div>
                         <p class="settings-status" id="paymentSettingsStatus">Loading</p>

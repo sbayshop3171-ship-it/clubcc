@@ -6,6 +6,8 @@
     const settingsForm = document.getElementById('paymentSettingsForm');
     const minimumAmount = document.getElementById('minimumDepositInput');
     const paymentWindow = document.getElementById('paymentWindowInput');
+    const bonusTiersElement = document.getElementById('adminBonusTiers');
+    const addBonusTierButton = document.getElementById('addBonusTier');
     const settingsStatus = document.getElementById('paymentSettingsStatus');
     const requestBody = document.getElementById('adminDepositBody');
     const paymentMethodsView = document.getElementById('paymentMethodsView');
@@ -94,12 +96,31 @@
         });
     }
 
+    function renderBonusTiers(tiers) {
+        bonusTiersElement.innerHTML = (tiers || []).map((tier, index) => `
+            <div class="settings-grid settings-grid-compact admin-bonus-tier" data-tier-index="${index}">
+                <label>Minimum amount ($)<input class="form-control" data-tier-field="threshold" type="number" min="0" step="0.01" value="${escapeHtml(tier.threshold)}" required ${lockAttribute()}></label>
+                <label>Bonus (%)<input class="form-control" data-tier-field="percent" type="number" min="0.01" max="1000" step="0.01" value="${escapeHtml(tier.percent)}" required ${lockAttribute()}></label>
+                <label class="toggle-field"><input type="checkbox" data-tier-field="active"${tier.active !== false ? ' checked' : ''} ${lockAttribute()}> Active</label>
+                <button class="admin-button btn remove-bonus-tier" type="button" ${lockAttribute()}>Remove</button>
+            </div>`).join('');
+    }
+
+    function collectBonusTiers() {
+        return [...bonusTiersElement.querySelectorAll('.admin-bonus-tier')].map((element) => ({
+            threshold: Number(element.querySelector('[data-tier-field="threshold"]').value),
+            percent: Number(element.querySelector('[data-tier-field="percent"]').value),
+            active: element.querySelector('[data-tier-field="active"]').checked
+        }));
+    }
+
     async function loadSettings() {
         try {
             const data = await api('/admin/deposit-settings');
             minimumAmount.value = data.settings.minimumAmount;
             paymentWindow.value = data.settings.paymentWindowMinutes;
             setLocked(true);
+            renderBonusTiers(data.settings.bonusTiers || []);
             renderMethods(data.settings.methods);
             setStatus('Locked');
         } catch (error) { setStatus(error.message, 'error'); }
@@ -120,7 +141,7 @@
 
         setStatus('Saving');
         try {
-            await api('/admin/deposit-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ minimumAmount: Number(minimumAmount.value), paymentWindowMinutes: Number(paymentWindow.value), methods: collectMethods(), masterAdminKey: key }) });
+            await api('/admin/deposit-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ minimumAmount: Number(minimumAmount.value), paymentWindowMinutes: Number(paymentWindow.value), bonusTiers: collectBonusTiers(), methods: collectMethods(), masterAdminKey: key }) });
             setStatus('Saved', 'success');
             masterAdminKey.value = '';
             setLocked(true);
@@ -174,6 +195,15 @@
     window.addEventListener('hashchange', () => showPaymentView(window.location.hash === '#requests' ? 'requests' : 'methods'));
     settingsForm.addEventListener('submit', saveSettings);
     unlockButton.addEventListener('click', unlockPaymentSettings);
+    addBonusTierButton.addEventListener('click', () => {
+        if (!paymentSettingsUnlocked) return;
+        const tiers = collectBonusTiers();
+        tiers.push({ threshold: 0, percent: 1, active: true });
+        renderBonusTiers(tiers);
+    });
+    bonusTiersElement.addEventListener('click', (event) => {
+        if (event.target.closest('.remove-bonus-tier')) event.target.closest('.admin-bonus-tier').remove();
+    });
     document.getElementById('refreshDeposits').addEventListener('click', loadRequests);
     document.getElementById('addPaymentMethod').addEventListener('click', () => {
         if (!paymentSettingsUnlocked) {
