@@ -66,6 +66,7 @@
     const purchaseHistoryTitle = document.getElementById('purchaseHistoryTitle');
     const purchaseStatus = document.getElementById('purchaseStatus');
     const refreshPurchases = document.getElementById('refreshPurchases');
+    const pendingPurchaseCount = document.getElementById('pendingPurchaseCount');
     const purchaseFilterButtons = document.querySelectorAll('[data-purchase-filter]');
     const purchaseDetailsModal = document.getElementById('purchaseDetailsModal');
     const purchaseDetailsContent = document.getElementById('purchaseDetailsContent');
@@ -2481,6 +2482,11 @@
         try {
             const data = await apiGet('/dashboard/purchases');
             purchaseRecords = data.purchases || [];
+            const pendingCount = purchaseRecords.filter((purchase) => purchase.status === 'Pending').length;
+            if (pendingPurchaseCount) {
+                pendingPurchaseCount.textContent = String(pendingCount);
+                pendingPurchaseCount.hidden = pendingCount === 0;
+            }
             renderPurchases(purchaseRecords);
             if (walletBalance) {
                 walletBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
