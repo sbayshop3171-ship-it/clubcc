@@ -2779,7 +2779,7 @@ function publicDeposit(deposit) {
 }
 
 function publicPurchase(purchase) {
-    const isCompleted = purchase.status === 'Completed';
+    const isCompleted = String(purchase.status || '').toLowerCase() === 'completed';
     const result = {
         id: purchase.id,
         userId: purchase.userId,
@@ -2835,7 +2835,7 @@ async function handleAdminPurchases(req, res, url) {
             return;
         }
 
-        if (purchase.status !== 'Pending') {
+        if (String(purchase.status || '').toLowerCase() !== 'pending') {
             sendError(res, 409, 'Only pending purchases can be approved');
             return;
         }
@@ -2865,7 +2865,7 @@ async function handleAdminPurchases(req, res, url) {
         .replace(/^REFUNDED$/, 'Refunded')
         .replace(/^CANCELLED$/, 'Cancelled');
 
-    if (purchase.status === 'Pending' && status === 'Completed') {
+    if (String(purchase.status || '').toLowerCase() === 'pending' && status === 'Completed') {
         sendError(res, 409, 'Use the approval action to complete a pending purchase');
         return;
     }
@@ -3166,7 +3166,7 @@ function handleRevealVirtualCard(req, res, cardId) {
     });
 }
 
-async function handleDashboardPurchases(req, res) {
+async function handleDashboardPurchases(req, res, url) {
     const session = getSessionFromRequest(req);
 
     if (!session) {
@@ -3184,13 +3184,18 @@ async function handleDashboardPurchases(req, res) {
     const store = readPurchases();
 
     if (req.method === 'GET') {
-        const purchases = store.purchases
-            .filter((purchase) => purchase.userId === user.id)
+        const requestedStatus = String(url.searchParams.get('status') || '').toLowerCase();
+        const userPurchases = store.purchases.filter((purchase) => purchase.userId === user.id);
+        const purchases = userPurchases
+            .filter((purchase) => !['pending', 'completed'].includes(requestedStatus)
+                || String(purchase.status || '').toLowerCase() === requestedStatus)
             .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt));
 
         jsonResponse(res, 200, {
             ok: true,
             purchases: purchases.map(publicPurchase),
+            pendingCount: userPurchases.filter((purchase) => String(purchase.status || '').toLowerCase() === 'pending').length,
+            completedCount: userPurchases.filter((purchase) => String(purchase.status || '').toLowerCase() === 'completed').length,
             walletBalance: userBalance(user)
         });
         return;
@@ -3226,7 +3231,7 @@ async function handleDashboardPurchases(req, res) {
         itemName: `${listing.type} listing from ${listing.bank}`,
         reference: `DEMO-${String(listing.id).padStart(5, '0')}`,
         category: 'Card Listing',
-        status: 'Completed',
+        status: 'Pending',
         amount,
         createdAt: now,
         note: `${listing.country}${listing.state ? ` · ${listing.state}` : ''}`
@@ -3291,7 +3296,7 @@ async function handleDashboardSsnPurchase(req, res) {
         itemName: `${listing.firstName} ${listing.lastName} SSN record`,
         reference: `SSN-${String(listing.id).padStart(6, '0')}`,
         category: 'SSN',
-        status: 'Completed',
+        status: 'Pending',
         amount,
         createdAt: now,
         note: `${listing.city}, ${listing.state}`,
@@ -3697,7 +3702,7 @@ async function handleRequest(req, res) {
         }
 
         if ((req.method === 'GET' || req.method === 'POST') && url.pathname === '/api/dashboard/purchases') {
-            await handleDashboardPurchases(req, res);
+            await handleDashboardPurchases(req, res, url);
             return;
         }
 

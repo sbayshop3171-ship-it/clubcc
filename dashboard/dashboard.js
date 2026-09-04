@@ -2480,9 +2480,9 @@
         }
 
         try {
-            const data = await apiGet('/dashboard/purchases');
+            const data = await apiGet(`/dashboard/purchases?status=${encodeURIComponent(activePurchaseFilter)}`);
             purchaseRecords = data.purchases || [];
-            const pendingCount = purchaseRecords.filter((purchase) => purchase.status === 'Pending').length;
+            const pendingCount = Number(data.pendingCount || 0);
             if (pendingPurchaseCount) {
                 pendingPurchaseCount.textContent = String(pendingCount);
                 pendingPurchaseCount.hidden = pendingCount === 0;
