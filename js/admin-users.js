@@ -846,7 +846,7 @@
                 <td>${escapeHtml(purchase.status)}</td>
                 <td>$${Number(purchase.amount || 0).toFixed(2)}</td>
                 <td>${escapeHtml(purchase.reference)}</td>
-                <td><button class="btn btn-sm btn-outline-primary" type="button" data-edit-purchase="${escapeHtml(purchase.id)}">Edit</button></td>
+                <td>${purchase.status === 'Pending' ? `<button class="btn btn-sm btn-success me-1" type="button" data-approve-purchase="${escapeHtml(purchase.id)}">Approve</button>` : ''}<button class="btn btn-sm btn-outline-primary" type="button" data-edit-purchase="${escapeHtml(purchase.id)}">Edit</button></td>
             </tr>
         `).join('');
     }
@@ -1823,7 +1823,23 @@
     refreshAdminPurchases?.addEventListener('click', loadAdminPurchases);
     purchaseEditForm?.addEventListener('submit', saveAdminPurchase);
     adminPurchasesTableBody?.addEventListener('click', (event) => {
+        const approveButton = event.target.closest('[data-approve-purchase]');
         const button = event.target.closest('[data-edit-purchase]');
+        if (approveButton) {
+            approveButton.disabled = true;
+            fetch(`/api/admin/purchases/${approveButton.dataset.approvePurchase}/approve`, {
+                method: 'POST',
+                headers: authHeaders()
+            })
+                .then((response) => adminJson(response, 'Unable to approve purchase'))
+                .then(() => loadAdminPurchases())
+                .catch((error) => {
+                    approveButton.disabled = false;
+                    setCardsStatus(error.message || 'Unable to approve purchase', 'error');
+                });
+            return;
+        }
+
         if (!button) {
             return;
         }

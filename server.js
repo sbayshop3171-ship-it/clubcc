@@ -2779,6 +2779,7 @@ function publicDeposit(deposit) {
 }
 
 function publicPurchase(purchase) {
+    const isCompleted = purchase.status === 'Completed';
     const result = {
         id: purchase.id,
         userId: purchase.userId,
@@ -2790,11 +2791,11 @@ function publicPurchase(purchase) {
         amount: purchase.amount,
         date: purchase.createdAt,
         note: purchase.note || '',
-        details: purchase.details || '',
+        details: isCompleted ? purchase.details || '' : '',
         adminNote: purchase.adminNote || ''
     };
 
-    if (purchase.ssnDetails) {
+    if (isCompleted && purchase.ssnDetails) {
         result.ssnDetails = purchase.ssnDetails;
     }
 
@@ -2815,6 +2816,7 @@ async function handleAdminPurchases(req, res, url) {
 
     const store = readPurchases();
     const purchaseMatch = url.pathname.match(/^\/api\/admin\/purchases\/(\d+)$/);
+    const approvalMatch = url.pathname.match(/^\/api\/admin\/purchases\/(\d+)\/approve$/);
 
     if (req.method === 'GET' && url.pathname === '/api/admin/purchases') {
         jsonResponse(res, 200, {
@@ -2823,6 +2825,25 @@ async function handleAdminPurchases(req, res, url) {
                 .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt))
                 .map(adminPurchase)
         });
+        return;
+    }
+
+    if (req.method === 'POST' && approvalMatch) {
+        const purchase = store.purchases.find((item) => item.id === Number(approvalMatch[1]));
+        if (!purchase) {
+            sendError(res, 404, 'Purchase not found');
+            return;
+        }
+
+        if (purchase.status !== 'Pending') {
+            sendError(res, 409, 'Only pending purchases can be approved');
+            return;
+        }
+
+        purchase.status = 'Completed';
+        purchase.approvedAt = new Date().toISOString();
+        writePurchases(store);
+        jsonResponse(res, 200, { ok: true, purchase: adminPurchase(purchase) });
         return;
     }
 
@@ -2843,6 +2864,11 @@ async function handleAdminPurchases(req, res, url) {
         .replace(/^PENDING$/, 'Pending')
         .replace(/^REFUNDED$/, 'Refunded')
         .replace(/^CANCELLED$/, 'Cancelled');
+
+    if (purchase.status === 'Pending' && status === 'Completed') {
+        sendError(res, 409, 'Use the approval action to complete a pending purchase');
+        return;
+    }
     const updatedPurchase = {
         ...purchase,
         itemName: sanitizeText(body.itemName, purchase.itemName, 180),
@@ -2990,7 +3016,7 @@ async function handleDashboardCheckout(req, res) {
             itemName: `${item.type} listing from ${item.bank}`,
             reference: orderReference,
             category: 'Card Marketplace',
-            status: 'Completed',
+            status: 'Pending',
             amount: Number((item.price * (1 - 0.03)).toFixed(2)),
             createdAt: now,
             note: `${item.country}${item.state ? ` · ${item.state}` : ''}`
@@ -3734,7 +3760,7 @@ async function handleRequest(req, res) {
             return;
         }
 
-        if ((req.method === 'GET' || req.method === 'PUT') && (url.pathname === '/api/admin/purchases' || /^\/api\/admin\/purchases\/\d+$/.test(url.pathname))) {
+        if ((req.method === 'GET' || req.method === 'PUT' || req.method === 'POST') && (url.pathname === '/api/admin/purchases' || /^\/api\/admin\/purchases\/\d+(\/approve)?$/.test(url.pathname))) {
             await handleAdminPurchases(req, res, url);
             return;
         }

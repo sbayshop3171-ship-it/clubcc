@@ -63,8 +63,10 @@
     const refreshVirtualCards = document.getElementById('refreshVirtualCards');
     const cardPurchaseStatus = document.getElementById('cardPurchaseStatus');
     const purchaseTableBody = document.getElementById('purchaseTableBody');
+    const purchaseHistoryTitle = document.getElementById('purchaseHistoryTitle');
     const purchaseStatus = document.getElementById('purchaseStatus');
     const refreshPurchases = document.getElementById('refreshPurchases');
+    const purchaseFilterButtons = document.querySelectorAll('[data-purchase-filter]');
     const purchaseDetailsModal = document.getElementById('purchaseDetailsModal');
     const purchaseDetailsContent = document.getElementById('purchaseDetailsContent');
     const purchaseDetailsClose = document.getElementById('purchaseDetailsClose');
@@ -177,6 +179,7 @@
     let activePurchaseRequest = null;
     let cartItems = [];
     let purchaseRecords = [];
+    let activePurchaseFilter = 'completed';
     let virtualCardRecords = [];
     let virtualPreviewRevealed = false;
     let walletBalanceValue = 0;
@@ -2396,12 +2399,16 @@
     function renderPurchases(purchases) {
         if (!purchaseTableBody) return;
 
-        const visiblePurchases = viewFromHash() === 'purchases-ssn'
-            ? purchases.filter((purchase) => purchase.category === 'SSN')
-            : purchases;
+        if (purchaseHistoryTitle) {
+            purchaseHistoryTitle.textContent = activePurchaseFilter === 'pending' ? 'Pending Orders' : 'Completed Orders';
+        }
+
+        const visiblePurchases = purchases
+            .filter((purchase) => String(purchase.status || '').toLowerCase() === activePurchaseFilter)
+            .filter((purchase) => viewFromHash() === 'purchases-ssn' ? purchase.category === 'SSN' : true);
 
         if (!visiblePurchases.length) {
-            purchaseTableBody.innerHTML = '<tr><td colspan="7" class="empty-history">No completed purchases yet.</td></tr>';
+            purchaseTableBody.innerHTML = `<tr><td colspan="7" class="empty-history">No ${activePurchaseFilter} orders yet.</td></tr>`;
             return;
         }
 
@@ -2417,7 +2424,7 @@
                 <td><span class="deposit-status is-${escapeHtml(String(purchase.status || '').toLowerCase())}">${escapeHtml(purchase.status)}</span></td>
                 <td>$${Number(purchase.amount || 0).toFixed(2)}</td>
                 <td>${escapeHtml(purchase.reference)}</td>
-                <td><button class="admin-button" type="button" data-view-purchase="${escapeHtml(purchase.id)}">View</button></td>
+                <td><button class="admin-button" type="button" data-view-purchase="${escapeHtml(purchase.id)}"${purchase.status === 'Completed' ? '' : ' disabled'}>${purchase.status === 'Completed' ? 'View' : 'Awaiting Approval'}</button></td>
             </tr>
         `).join('');
     }
@@ -2857,6 +2864,13 @@
     virtualCardForm?.addEventListener('submit', createVirtualCard);
     refreshVirtualCards?.addEventListener('click', loadVirtualCards);
     refreshPurchases?.addEventListener('click', () => loadPurchases());
+    purchaseFilterButtons.forEach((button) => {
+        button.addEventListener('click', () => {
+            activePurchaseFilter = button.dataset.purchaseFilter;
+            purchaseFilterButtons.forEach((filterButton) => filterButton.classList.toggle('admin-button-primary', filterButton === button));
+            renderPurchases(purchaseRecords);
+        });
+    });
     virtualCardsTableBody?.addEventListener('click', (event) => {
         const button = event.target.closest('[data-view-card]');
         if (!button) return;
