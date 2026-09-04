@@ -7,6 +7,7 @@
         users: '/admin/users',
         cards: '/admin/cards',
         purchases: '/admin/purchases',
+        'pending-purchases': '/admin/purchases/pending',
         checker: '/admin/checker',
         tickets: '/admin/tickets',
         ssn: '/admin',
@@ -25,6 +26,7 @@
     const usersNavLink = document.getElementById('usersNavLink');
     const cardsNavLink = document.getElementById('cardsNavLink');
     const purchasesNavLink = document.getElementById('purchasesNavLink');
+    const pendingPurchasesNavLink = document.getElementById('pendingPurchasesNavLink');
     const checkerNavLink = document.getElementById('checkerNavLink');
     const ssnNavLink = document.getElementById('ssnNavLink');
     const dashboardNavLink = document.getElementById('dashboardNavLink');
@@ -101,8 +103,12 @@
     const adminCardLogoPreview = document.getElementById('adminCardLogoPreview');
     const clearAdminCardForm = document.getElementById('clearAdminCardForm');
     const purchasesSection = document.getElementById('purchasesSection');
+    const pendingPurchasesSection = document.getElementById('pendingPurchasesSection');
     const adminPurchasesTableBody = document.getElementById('adminPurchasesTableBody');
+    const adminPendingPurchasesTableBody = document.getElementById('adminPendingPurchasesTableBody');
+    const adminPendingPurchasesCount = document.getElementById('adminPendingPurchasesCount');
     const refreshAdminPurchases = document.getElementById('refreshAdminPurchases');
+    const refreshAdminPendingPurchases = document.getElementById('refreshAdminPendingPurchases');
     const purchaseEditModal = document.getElementById('purchaseEditModal');
     const purchaseEditForm = document.getElementById('purchaseEditForm');
     const purchaseEditStatus = document.getElementById('purchaseEditStatus');
@@ -828,9 +834,27 @@
 
     function renderAdminPurchases(purchases) {
         const records = Array.isArray(purchases) ? purchases : [];
+        const pendingRecords = records.filter((purchase) => String(purchase.status || '').toLowerCase() === 'pending');
 
         if (!adminPurchasesTableBody) {
             return;
+        }
+        if (adminPendingPurchasesCount) {
+            adminPendingPurchasesCount.textContent = String(pendingRecords.length);
+            adminPendingPurchasesCount.hidden = pendingRecords.length === 0;
+        }
+        if (adminPendingPurchasesTableBody) {
+            adminPendingPurchasesTableBody.innerHTML = pendingRecords.length ? pendingRecords.map((purchase) => `
+                <tr>
+                    <td>#${escapeHtml(purchase.id)}</td>
+                    <td>${escapeHtml(purchase.username || purchase.userId)}</td>
+                    <td>${escapeHtml(purchase.itemName)}</td>
+                    <td>$${Number(purchase.amount || 0).toFixed(2)}</td>
+                    <td>${escapeHtml(new Date(purchase.date).toLocaleString())}</td>
+                    <td>${escapeHtml(purchase.reference)}</td>
+                    <td><button class="btn btn-sm btn-success" type="button" data-approve-purchase="${escapeHtml(purchase.id)}">Approve</button></td>
+                </tr>
+            `).join('') : '<tr><td colspan="7" class="text-center text-muted py-5">No pending purchases.</td></tr>';
         }
         if (!records.length) {
             adminPurchasesTableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-5">No purchases found.</td></tr>';
@@ -864,6 +888,20 @@
         } catch (error) {
             adminPurchasesTableBody.innerHTML = `<tr><td colspan="8" class="text-center text-danger py-5">${escapeHtml(error.message || 'Unable to load purchases')}</td></tr>`;
         }
+    }
+
+    function approveAdminPurchase(button) {
+        button.disabled = true;
+        fetch(`/api/admin/purchases/${button.dataset.approvePurchase}/approve`, {
+            method: 'POST',
+            headers: authHeaders()
+        })
+            .then((response) => adminJson(response, 'Unable to approve purchase'))
+            .then(() => loadAdminPurchases())
+            .catch((error) => {
+                button.disabled = false;
+                setCardsStatus(error.message || 'Unable to approve purchase', 'error');
+            });
     }
 
     function openPurchaseEditor(purchase) {
@@ -1670,6 +1708,7 @@
         section.hidden = activeView !== 'users';
         cardsSection.hidden = activeView !== 'cards';
         purchasesSection.hidden = activeView !== 'purchases';
+        pendingPurchasesSection.hidden = activeView !== 'pending-purchases';
         checkerSection.hidden = activeView !== 'checker';
         ticketsSection.hidden = activeView !== 'tickets';
         ssnSection.hidden = activeView !== 'ssn';
@@ -1685,6 +1724,7 @@
         usersNavLink?.classList.toggle('active', activeView === 'users');
         cardsNavLink?.classList.toggle('active', activeView === 'cards');
         purchasesNavLink?.classList.toggle('active', activeView === 'purchases');
+        pendingPurchasesNavLink?.classList.toggle('active', activeView === 'pending-purchases');
         checkerNavLink?.classList.toggle('active', activeView === 'checker');
         ticketsNavLink?.classList.toggle('active', activeView === 'tickets');
         ssnNavLink?.classList.toggle('active', activeView === 'ssn');
@@ -1709,7 +1749,7 @@
         } else if (activeView === 'cards') {
             loadCards();
             loadVirtualCards();
-        } else if (activeView === 'purchases') {
+        } else if (activeView === 'purchases' || activeView === 'pending-purchases') {
             loadAdminPurchases();
         } else if (activeView === 'payment') {
             loadPaymentSettings();
@@ -1821,22 +1861,13 @@
     });
     generateBulkCardsButton?.addEventListener('click', generateBulkCards);
     refreshAdminPurchases?.addEventListener('click', loadAdminPurchases);
+    refreshAdminPendingPurchases?.addEventListener('click', loadAdminPurchases);
     purchaseEditForm?.addEventListener('submit', saveAdminPurchase);
     adminPurchasesTableBody?.addEventListener('click', (event) => {
         const approveButton = event.target.closest('[data-approve-purchase]');
         const button = event.target.closest('[data-edit-purchase]');
         if (approveButton) {
-            approveButton.disabled = true;
-            fetch(`/api/admin/purchases/${approveButton.dataset.approvePurchase}/approve`, {
-                method: 'POST',
-                headers: authHeaders()
-            })
-                .then((response) => adminJson(response, 'Unable to approve purchase'))
-                .then(() => loadAdminPurchases())
-                .catch((error) => {
-                    approveButton.disabled = false;
-                    setCardsStatus(error.message || 'Unable to approve purchase', 'error');
-                });
+            approveAdminPurchase(approveButton);
             return;
         }
 
@@ -1848,6 +1879,12 @@
             .then((response) => adminJson(response, 'Unable to load purchases'))
             .then((data) => openPurchaseEditor(data.purchases.find((purchase) => String(purchase.id) === button.dataset.editPurchase)))
             .catch((error) => setCardsStatus(error.message || 'Unable to load purchase', 'error'));
+    });
+    adminPendingPurchasesTableBody?.addEventListener('click', (event) => {
+        const approveButton = event.target.closest('[data-approve-purchase]');
+        if (approveButton) {
+            approveAdminPurchase(approveButton);
+        }
     });
     virtualCardEditForm?.addEventListener('submit', saveVirtualCard);
     adminVirtualCardsTableBody?.addEventListener('click', (event) => {

@@ -68,6 +68,13 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="/admin/purchases/pending" class="nav-link sidebar-link py-3" id="pendingPurchasesNavLink" data-admin-view="pending-purchases">
+                    <iconify-icon icon="mdi:clock-alert-outline" width="24" height="24"></iconify-icon>
+                    Pending Orders
+                    <span class="badge bg-warning text-dark ms-auto" id="adminPendingPurchasesCount" hidden>0</span>
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="/admin/checker" class="nav-link sidebar-link py-3" id="checkerNavLink" data-admin-view="checker">
                     <iconify-icon icon="mdi:checkerboard" width="24" height="24"></iconify-icon>
                     Checker
@@ -792,6 +799,24 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                         <table class="table align-middle mb-0">
                             <thead><tr><th>ID</th><th>User</th><th>Item</th><th>Category</th><th>Status</th><th>Total</th><th>Reference</th><th>Action</th></tr></thead>
                             <tbody id="adminPurchasesTableBody"><tr><td colspan="8" class="text-center text-muted py-5">Loading purchases...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="pendingPurchasesSection" class="admin-cards-section py-4" data-admin-view-panel="pending-purchases" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div>
+                        <h5 class="mb-1">Pending Purchases / Orders</h5>
+                        <p class="mb-0 text-muted">Review and approve orders before delivery is released to the user.</p>
+                    </div>
+                    <button class="btn btn-dark" id="refreshAdminPendingPurchases" type="button">Refresh</button>
+                </div>
+                <div class="card border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0">
+                            <thead><tr><th>Order ID</th><th>User</th><th>Item Type</th><th>Amount</th><th>Date</th><th>Reference</th><th>Action</th></tr></thead>
+                            <tbody id="adminPendingPurchasesTableBody"><tr><td colspan="7" class="text-center text-muted py-5">Loading pending orders...</td></tr></tbody>
                         </table>
                     </div>
                 </div>
