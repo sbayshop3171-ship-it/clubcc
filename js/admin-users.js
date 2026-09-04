@@ -96,6 +96,10 @@
     const adminCardsCount = document.getElementById('adminCardsCount');
     const adminCardsTableBody = document.getElementById('adminCardsTableBody');
     const adminCardsEmptyState = document.getElementById('adminCardsEmptyState');
+    const adminCardsFilterForm = document.getElementById('adminCardsFilterForm');
+    const adminCardsSearch = document.getElementById('adminCardsSearch');
+    const adminCardsPerPage = document.getElementById('adminCardsPerPage');
+    const adminCardsPagination = document.getElementById('adminCardsPagination');
     const bulkCardQuantity = document.getElementById('bulkCardQuantity');
     const generateBulkCardsButton = document.getElementById('generateBulkCards');
     const adminCardType = document.getElementById('adminCardType');
@@ -113,6 +117,8 @@
     const purchaseEditForm = document.getElementById('purchaseEditForm');
     const purchaseEditStatus = document.getElementById('purchaseEditStatus');
     let selectedAdminPurchase = null;
+    let adminCardsPage = 1;
+    let adminCardsSearchTimer = null;
     const adminVirtualCardsCount = document.getElementById('adminVirtualCardsCount');
     const adminVirtualCardsTableBody = document.getElementById('adminVirtualCardsTableBody');
     const virtualCardEditModal = document.getElementById('virtualCardEditModal');
@@ -642,11 +648,26 @@
         };
     }
 
-    function renderCards(cards) {
+    function renderCards(cards, metadata = {}) {
         const records = Array.isArray(cards) ? cards : [];
 
         if (adminCardsCount) {
-            adminCardsCount.textContent = `${records.length} ${records.length === 1 ? 'card' : 'cards'}`;
+            const total = Number(metadata.totalRecords ?? records.length);
+            adminCardsCount.textContent = `${total} ${total === 1 ? 'card' : 'cards'}`;
+        }
+
+        if (adminCardsPagination) {
+            const totalPages = Number(metadata.totalPages) || 1;
+            const currentPage = Number(metadata.currentPage || 1);
+            const pages = [...new Set([1, currentPage - 2, currentPage - 1, currentPage, currentPage + 1, currentPage + 2, totalPages])]
+                .filter((page) => page > 0 && page <= totalPages)
+                .sort((left, right) => left - right);
+            const pageButtons = [];
+            pages.forEach((page, index) => {
+                if (index > 0 && page - pages[index - 1] > 1) pageButtons.push('<span class="mx-1">...</span>');
+                pageButtons.push(`<button class="btn btn-sm ${page === currentPage ? 'btn-dark' : 'btn-outline-secondary'} mx-1" type="button" data-admin-card-page="${page}">${page}</button>`);
+            });
+            adminCardsPagination.innerHTML = totalPages > 1 ? pageButtons.join('') : '';
         }
 
         if (!adminCardsTableBody || !adminCardsEmptyState) {
@@ -696,14 +717,20 @@
         setCardsStatus('Loading');
 
         try {
-            const response = await fetch('/api/admin/cards', {
+            const params = new URLSearchParams({
+                page: String(adminCardsPage),
+                perPage: adminCardsPerPage?.value || '20',
+                q: adminCardsSearch?.value.trim() || ''
+            });
+            const response = await fetch(`/api/admin/cards?${params}`, {
                 headers: {
                     ...authHeaders()
                 }
             });
             const data = await adminJson(response, 'Unable to load cards');
 
-            renderCards(data.cards);
+            adminCardsPage = Number(data.currentPage) || adminCardsPage;
+            renderCards(data.cards, data);
             setCardsStatus('Synced', 'success');
         } catch (error) {
             adminCardsTableBody.innerHTML = `<tr><td colspan="16" class="text-center text-danger py-5">${escapeHtml(error.message || 'Unable to load cards')}</td></tr>`;
@@ -992,7 +1019,7 @@
             });
             const data = await adminJson(response, 'Unable to save card');
 
-            renderCards(data.cards);
+            await loadCards();
             adminCardForm.reset();
             populateAdminCountries();
             updateLogoPreview();
@@ -1025,7 +1052,7 @@
             });
             const data = await adminJson(response, 'Unable to generate bulk cards');
 
-            renderCards(data.cards);
+            await loadCards();
             setCardsStatus(`${data.generated} records generated`, 'success');
         } catch (error) {
             setCardsStatus(error.message || 'Bulk generation failed', 'error');
@@ -2025,6 +2052,28 @@
         if (button) {
             deleteCard(button.dataset.deleteCard);
         }
+    });
+    adminCardsPagination?.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-admin-card-page]');
+        if (!button) return;
+        adminCardsPage = Number(button.dataset.adminCardPage) || 1;
+        loadCards();
+    });
+    adminCardsFilterForm?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        adminCardsPage = 1;
+        loadCards();
+    });
+    adminCardsSearch?.addEventListener('input', () => {
+        window.clearTimeout(adminCardsSearchTimer);
+        adminCardsSearchTimer = window.setTimeout(() => {
+            adminCardsPage = 1;
+            loadCards();
+        }, 300);
+    });
+    adminCardsPerPage?.addEventListener('change', () => {
+        adminCardsPage = 1;
+        loadCards();
     });
     document.querySelectorAll('[data-admin-view]').forEach((link) => {
         link.addEventListener('click', (event) => {

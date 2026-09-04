@@ -780,9 +780,15 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                 </div>
 
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <div class="card-header bg-white d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center">
                         <span class="fw-semibold">Saved Card Records</span>
-                        <span class="badge bg-dark rounded-pill" id="adminCardsCount">0 cards</span>
+                        <div class="d-flex gap-2 align-items-center">
+                            <form class="d-flex gap-2" id="adminCardsFilterForm">
+                                <input class="form-control form-control-sm" id="adminCardsSearch" type="search" placeholder="Search cards" aria-label="Search cards">
+                                <select class="form-select form-select-sm" id="adminCardsPerPage" aria-label="Cards per page"><option value="20">20</option><option value="50">50</option><option value="100">100</option></select>
+                            </form>
+                            <span class="badge bg-dark rounded-pill" id="adminCardsCount">0 cards</span>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table align-middle mb-0 admin-cards-table">
@@ -816,6 +822,7 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                     <div class="admin-users-empty" id="adminCardsEmptyState" hidden>
                         No saved card records yet.
                     </div>
+                    <nav class="d-flex justify-content-center p-3" id="adminCardsPagination" aria-label="Admin card pages"></nav>
                 </div>
             </section>
 

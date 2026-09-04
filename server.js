@@ -2136,11 +2136,35 @@ async function handleSubPriceSettings(req, res) {
     jsonResponse(res, 200, { ok: true, message: 'SUB price saved', price: settings.price });
 }
 
-async function handleAdminCards(req, res) {
+async function handleAdminCards(req, res, url) {
     if (req.method === 'GET') {
+        const page = Math.max(1, Number.parseInt(url.searchParams.get('page') || '1', 10) || 1);
+        const perPage = Math.min(100, Math.max(10, Number.parseInt(url.searchParams.get('perPage') || '20', 10) || 20));
+        const query = String(url.searchParams.get('q') || '').trim().toLowerCase();
+        const bin = String(url.searchParams.get('bin') || '').trim().toLowerCase();
+        const bank = String(url.searchParams.get('bank') || '').trim().toLowerCase();
+        const country = String(url.searchParams.get('country') || '').trim().toLowerCase();
+        const type = String(url.searchParams.get('type') || '').trim().toLowerCase();
+        const allCards = readCardRecords();
+        const filteredCards = allCards.filter((card) => {
+            const searchable = [card.bin, card.bank, card.country, card.state, card.city, card.database, card.vendor, card.type].join(' ').toLowerCase();
+            return (!query || searchable.includes(query))
+                && (!bin || card.bin.toLowerCase().startsWith(bin))
+                && (!bank || card.bank.toLowerCase().includes(bank))
+                && (!country || card.country.toLowerCase().includes(country))
+                && (!type || card.type.toLowerCase() === type);
+        });
+        const totalRecords = filteredCards.length;
+        const totalPages = Math.max(1, Math.ceil(totalRecords / perPage));
+        const currentPage = Math.min(page, totalPages);
+        const start = (currentPage - 1) * perPage;
         jsonResponse(res, 200, {
             ok: true,
-            cards: readCardRecords()
+            cards: filteredCards.slice(start, start + perPage),
+            currentPage,
+            totalPages,
+            totalRecords,
+            perPage
         });
         return;
     }
@@ -2151,8 +2175,7 @@ async function handleAdminCards(req, res) {
     jsonResponse(res, 201, {
         ok: true,
         message: 'Card record saved',
-        card,
-        cards: readCardRecords()
+        card
     });
 }
 
@@ -2170,8 +2193,7 @@ async function handleBulkAdminCards(req, res) {
     jsonResponse(res, 201, {
         ok: true,
         message: `${cards.length} card records generated`,
-        generated: cards.length,
-        cards: readCardRecords()
+        generated: cards.length
     });
 }
 
@@ -3837,7 +3859,7 @@ async function handleRequest(req, res) {
             if (!requireAdminSession(req, res)) {
                 return;
             }
-            await handleAdminCards(req, res);
+            await handleAdminCards(req, res, url);
             return;
         }
 
