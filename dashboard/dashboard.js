@@ -1032,6 +1032,10 @@
     function viewFromHash() {
         const hash = window.location.hash;
 
+        if (hash === '#purchases/pending') {
+            return 'purchases-pending';
+        }
+
         if (hash === '#purchases/ssn') {
             return 'purchases-ssn';
         }
@@ -1054,14 +1058,20 @@
     }
 
     function showDashboardView(viewName) {
-        const activeView = ['cards', 'ssn', 'chicken', 'otp-bypass', 'tickets', 'cart', 'deposit', 'virtual-cards', 'purchases', 'purchases-ssn', 'settings'].includes(viewName) ? viewName : 'news';
+        const activeView = ['cards', 'ssn', 'chicken', 'otp-bypass', 'tickets', 'cart', 'deposit', 'virtual-cards', 'purchases', 'purchases-pending', 'purchases-ssn', 'settings'].includes(viewName) ? viewName : 'news';
+        if (activeView === 'purchases-pending') {
+            activePurchaseFilter = 'pending';
+        } else if (activeView === 'purchases' || activeView === 'purchases-ssn') {
+            activePurchaseFilter = 'completed';
+        }
+        purchaseFilterButtons.forEach((button) => button.classList.toggle('admin-button-primary', button.dataset.purchaseFilter === activePurchaseFilter));
 
         closeSidebar();
         document.body.classList.toggle('cards-view-active', activeView === 'cards');
 
         dashboardViews.forEach((view) => {
             const isActive = view.dataset.dashboardView === activeView
-                || (view.dataset.dashboardView === 'purchases' && activeView === 'purchases-ssn');
+                || (view.dataset.dashboardView === 'purchases' && ['purchases-pending', 'purchases-ssn'].includes(activeView));
 
             view.hidden = !isActive;
             view.classList.toggle('is-active', isActive);
@@ -2570,7 +2580,7 @@
         try {
             const data = await apiPost('/dashboard/cart/checkout', { cardIds: ids });
             if (walletBalance) walletBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
-            window.location.href = '/purchases/cvv';
+            window.location.href = '/dashboard/#purchases/pending';
         } catch (error) {
             if (cartStatus) cartStatus.textContent = error.message;
             completeOrder.disabled = false;
