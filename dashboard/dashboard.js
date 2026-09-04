@@ -1457,6 +1457,7 @@
                 <td>${escapeHtml(record.vendor)}</td>
                 <td>$${Number(record.price || 0).toFixed(2)}</td>
                 <td>
+                    <button class="action-button" type="button" data-buy-card="${escapeHtml(record.id)}">Buy Now</button>
                     <button class="action-button" type="button" data-add-to-cart="${escapeHtml(record.id)}">
                         <iconify-icon icon="mdi:cart-plus" width="16" height="16"></iconify-icon>
                         Add to Cart
@@ -2625,6 +2626,37 @@
         }
     }
 
+    async function buyCardDirect(cardId, button) {
+        if (!cardId || activePurchaseRequest) {
+            return;
+        }
+
+        activePurchaseRequest = String(cardId);
+        if (button) {
+            button.disabled = true;
+        }
+        if (cardPurchaseStatus) {
+            cardPurchaseStatus.textContent = 'Submitting order for admin approval...';
+            cardPurchaseStatus.classList.remove('is-error', 'is-success');
+        }
+
+        try {
+            const data = await apiPost('/dashboard/purchases', { cardId });
+            setWalletBalance(data.walletBalance);
+            window.location.href = '/dashboard/#purchases/pending';
+        } catch (error) {
+            if (cardPurchaseStatus) {
+                cardPurchaseStatus.textContent = error.message || 'Unable to submit purchase';
+                cardPurchaseStatus.classList.add('is-error');
+            }
+        } finally {
+            activePurchaseRequest = null;
+            if (button) {
+                button.disabled = false;
+            }
+        }
+    }
+
     function closeDepositModal() {
         paidDepositModal.hidden = true;
         paidDepositStatus.textContent = '';
@@ -2914,7 +2946,13 @@
         }
     });
     cardTableBody?.addEventListener('click', (event) => {
+        const buyButton = event.target.closest('[data-buy-card]');
         const button = event.target.closest('[data-add-to-cart]');
+
+        if (buyButton) {
+            buyCardDirect(buyButton.dataset.buyCard, buyButton);
+            return;
+        }
 
         if (!button) {
             return;
