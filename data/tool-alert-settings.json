@@ -1,0 +1,17 @@
+{
+  "checker": {
+    "enabled": true,
+    "title": "COMING SOON",
+    "description": "We are working on this feature. Please check again later."
+  },
+  "otp-bypass": {
+    "enabled": true,
+    "title": "COMING SOON",
+    "description": "We are working on this feature. Please check again later."
+  },
+  "call-bypass": {
+    "enabled": true,
+    "title": "COMING SOON",
+    "description": "We are working on this feature. Please check again later."
+  }
+}

@@ -32,6 +32,7 @@ const DATA_DIR = path.join(ROOT, 'data');
 const DB_PATH = path.join(DATA_DIR, 'users.json');
 const TICKER_SETTINGS_PATH = path.join(DATA_DIR, 'ticker-settings.json');
 const ANNOUNCEMENT_ALERT_PATH = path.join(DATA_DIR, 'announcement-alert.json');
+const TOOL_ALERT_SETTINGS_PATH = path.join(DATA_DIR, 'tool-alert-settings.json');
 const CHECKER_SETTINGS_PATH = path.join(DATA_DIR, 'checker-settings.json');
 const SUB_SETTINGS_PATH = path.join(DATA_DIR, 'sub-settings.json');
 const CARDS_PATH = path.join(DATA_DIR, 'cards.json');
@@ -47,6 +48,11 @@ const LOG_DIR = path.join(STORAGE_DIR, 'logs');
 const AUTH_AUDIT_LOG_PATH = path.join(LOG_DIR, 'auth-audit.log');
 const DEFAULT_CHECKER_SETTINGS = { price: 0.30 };
 const DEFAULT_SUB_SETTINGS = { price: 150 };
+const DEFAULT_TOOL_ALERT_SETTINGS = {
+    checker: { enabled: true, title: 'COMING SOON', description: 'We are working on this feature. Please check again later.' },
+    'otp-bypass': { enabled: true, title: 'COMING SOON', description: 'We are working on this feature. Please check again later.' },
+    'call-bypass': { enabled: true, title: 'COMING SOON', description: 'We are working on this feature. Please check again later.' }
+};
 const CAPTCHA_TTL_MS = 5 * 60 * 1000;
 const CAPTCHA_MAX_CHALLENGES = 1000;
 const CAPTCHA_SECRET = crypto.randomBytes(32);
@@ -1488,6 +1494,31 @@ function writeSubSettings(settings) {
     return sanitizedSettings;
 }
 
+function sanitizeToolAlertSettings(settings = {}) {
+    return Object.fromEntries(Object.entries(DEFAULT_TOOL_ALERT_SETTINGS).map(([route, fallback]) => {
+        const value = settings[route] || {};
+        return [route, {
+            enabled: value.enabled !== false,
+            title: sanitizeText(value.title, fallback.title, 120),
+            description: sanitizeText(value.description, fallback.description, 2000)
+        }];
+    }));
+}
+
+function readToolAlertSettings() {
+    const settings = sanitizeToolAlertSettings(readJsonStore(TOOL_ALERT_SETTINGS_PATH, DEFAULT_TOOL_ALERT_SETTINGS));
+    if (!fs.existsSync(TOOL_ALERT_SETTINGS_PATH)) {
+        writeJsonStore(TOOL_ALERT_SETTINGS_PATH, settings);
+    }
+    return settings;
+}
+
+function writeToolAlertSettings(settings) {
+    const sanitizedSettings = sanitizeToolAlertSettings(settings);
+    writeJsonStore(TOOL_ALERT_SETTINGS_PATH, sanitizedSettings);
+    return sanitizedSettings;
+}
+
 function jsonResponse(res, status, body) {
     const payload = JSON.stringify(body);
 
@@ -2076,6 +2107,17 @@ async function handleCheckerSettings(req, res) {
     const settings = writeCheckerSettings({ ...readCheckerSettings(), ...body });
 
     jsonResponse(res, 200, { ok: true, message: 'Checker settings saved', settings });
+}
+
+async function handleToolAlertSettings(req, res) {
+    if (req.method === 'GET') {
+        jsonResponse(res, 200, { ok: true, settings: readToolAlertSettings() });
+        return;
+    }
+
+    const body = await parseBody(req);
+    const settings = writeToolAlertSettings({ ...readToolAlertSettings(), ...body.settings });
+    jsonResponse(res, 200, { ok: true, message: 'Tool alert settings saved', settings });
 }
 
 async function handleSubPriceSettings(req, res) {
@@ -3635,6 +3677,15 @@ async function handleRequest(req, res) {
             handleAnnouncementAlert(req, res);
             return;
         }
+
+        if (req.method === 'GET' && url.pathname === '/api/tool-alert-settings') {
+            if (!getSessionFromRequest(req)) {
+                sendError(res, 401, 'No active session');
+                return;
+            }
+            await handleToolAlertSettings(req, res);
+            return;
+        }
         if (req.method === 'POST' && url.pathname === '/api/user/update-profile') {
             await handleUpdateProfile(req, res);
             return;
@@ -3744,6 +3795,14 @@ async function handleRequest(req, res) {
                 return;
             }
             await handleCheckerSettings(req, res);
+            return;
+        }
+
+        if ((req.method === 'GET' || req.method === 'PUT') && url.pathname === '/api/admin/tool-alert-settings') {
+            if (!requireAdminSession(req, res)) {
+                return;
+            }
+            await handleToolAlertSettings(req, res);
             return;
         }
 

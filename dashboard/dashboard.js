@@ -115,6 +115,8 @@
     const checkerProcessingModal = document.getElementById('checkerProcessingModal');
     const checkerComingModal = document.getElementById('checkerComingModal');
     const checkerComingOk = document.getElementById('checkerComingOk');
+    const checkerComingTitle = document.getElementById('checkerComingTitle');
+    const checkerComingDescription = document.getElementById('checkerComingDescription');
     const ticketCreatePanel = document.getElementById('ticketCreatePanel');
     const ticketCreateForm = document.getElementById('ticketCreateForm');
     const ticketCreateStatus = document.getElementById('ticketCreateStatus');
@@ -181,6 +183,7 @@
     let cartItems = [];
     let purchaseRecords = [];
     let activePurchaseFilter = 'completed';
+    let toolAlertSettings = {};
     let virtualCardRecords = [];
     let virtualPreviewRevealed = false;
     let walletBalanceValue = 0;
@@ -1905,6 +1908,34 @@
         }, 4200);
     }
 
+    async function showToolAlert(route) {
+        const fallback = {
+            enabled: true,
+            title: 'COMING SOON',
+            description: 'We are working on this feature. Please check again later.'
+        };
+        try {
+            const data = await apiGet('/tool-alert-settings');
+            toolAlertSettings = data.settings || toolAlertSettings;
+        } catch (error) {
+            if (error.message === 'Session expired') {
+                return;
+            }
+        }
+
+        const setting = { ...fallback, ...(toolAlertSettings[route] || {}) };
+        if (setting.enabled === false) {
+            [authorizeCheck, zeroCheck, otpBypassButton].filter(Boolean).forEach((button) => {
+                button.disabled = false;
+            });
+            return;
+        }
+        checkerComingTitle.textContent = setting.title;
+        checkerComingDescription.textContent = setting.description;
+        checkerComingModal.hidden = false;
+        checkerComingOk.focus();
+    }
+
     function setWalletBalance(value) {
         const normalizedValue = typeof value === 'number'
             ? value
@@ -2002,10 +2033,9 @@
 
         checkerProcessingModal.hidden = false;
 
-        window.setTimeout(() => {
+        window.setTimeout(async () => {
             checkerProcessingModal.hidden = true;
-            checkerComingModal.hidden = false;
-            checkerComingOk.focus();
+            await showToolAlert(sourceButton === otpBypassButton ? 'otp-bypass' : 'checker');
         }, 10000);
     }
 
@@ -2024,8 +2054,7 @@
     document.querySelectorAll('[data-coming-soon-nav]').forEach((link) => {
         link.addEventListener('click', (event) => {
             event.preventDefault();
-            checkerComingModal.hidden = false;
-            checkerComingOk?.focus();
+            showToolAlert('call-bypass');
         });
     });
     checkerComingModal?.addEventListener('click', (event) => {

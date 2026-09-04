@@ -506,6 +506,39 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                         </form>
                     </div>
                 </div>
+                <div class="card border-0 shadow-sm admin-content-card mt-3">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Tool Alert Dialogs</span>
+                        <span class="admin-content-status" id="toolAlertSettingsStatus" role="status" aria-live="polite">Loading</span>
+                    </div>
+                    <div class="card-body">
+                        <form id="toolAlertSettingsForm" autocomplete="off">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="toolAlertRouteInput">Feature / Route</label>
+                                    <select class="form-select" id="toolAlertRouteInput">
+                                        <option value="checker">Checkers</option>
+                                        <option value="otp-bypass">OTP Bypass</option>
+                                        <option value="call-bypass">Call Bypass</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label" for="toolAlertTitleInput">Popup Title</label>
+                                    <input class="form-control" id="toolAlertTitleInput" maxlength="120" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="toolAlertDescriptionInput">Popup Description</label>
+                                    <textarea class="form-control" id="toolAlertDescriptionInput" rows="3" maxlength="2000" required></textarea>
+                                </div>
+                                <div class="col-md-4 form-check form-switch ms-2">
+                                    <input class="form-check-input" id="toolAlertEnabledInput" type="checkbox">
+                                    <label class="form-check-label" for="toolAlertEnabledInput">Enable popup for this route</label>
+                                </div>
+                                <div class="col-12"><button class="btn btn-dark" type="submit">Save Tool Alert</button></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </section>
 
             <section id="ticketsSection" class="admin-dashboard-section py-4" data-admin-view-panel="tickets" hidden>

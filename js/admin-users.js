@@ -137,6 +137,13 @@
     const adminSsnTableBody = document.getElementById('adminSsnTableBody');
     const adminSsnPagination = document.getElementById('adminSsnPagination');
     const checkerSettingsForm = document.getElementById('checkerSettingsForm');
+    const toolAlertSettingsForm = document.getElementById('toolAlertSettingsForm');
+    const toolAlertRouteInput = document.getElementById('toolAlertRouteInput');
+    const toolAlertTitleInput = document.getElementById('toolAlertTitleInput');
+    const toolAlertDescriptionInput = document.getElementById('toolAlertDescriptionInput');
+    const toolAlertEnabledInput = document.getElementById('toolAlertEnabledInput');
+    const toolAlertSettingsStatus = document.getElementById('toolAlertSettingsStatus');
+    let toolAlertSettings = {};
     const checkerPriceInput = document.getElementById('checkerPriceInput');
     const checkerSettingsStatus = document.getElementById('checkerSettingsStatus');
     const ticketsSection = document.getElementById('ticketsSection');
@@ -1400,6 +1407,53 @@
         }
     }
 
+    function setToolAlertStatus(message, type = '') {
+        toolAlertSettingsStatus.textContent = message;
+        toolAlertSettingsStatus.className = `admin-content-status${type === 'error' ? ' text-danger' : type === 'success' ? ' text-success' : ''}`;
+    }
+
+    function populateToolAlertForm() {
+        const setting = toolAlertSettings[toolAlertRouteInput.value] || {};
+        toolAlertTitleInput.value = setting.title || '';
+        toolAlertDescriptionInput.value = setting.description || '';
+        toolAlertEnabledInput.checked = setting.enabled !== false;
+    }
+
+    async function loadToolAlertSettings() {
+        setToolAlertStatus('Loading');
+        try {
+            const data = await adminJson(await fetch('/api/admin/tool-alert-settings', { headers: authHeaders() }), 'Unable to load tool alerts');
+            toolAlertSettings = data.settings || {};
+            populateToolAlertForm();
+            setToolAlertStatus('Synced', 'success');
+        } catch (error) {
+            setToolAlertStatus(error.message || 'Load failed', 'error');
+        }
+    }
+
+    async function saveToolAlertSettings(event) {
+        event.preventDefault();
+        setToolAlertStatus('Saving');
+        const route = toolAlertRouteInput.value;
+        try {
+            const response = await fetch('/api/admin/tool-alert-settings', {
+                method: 'PUT',
+                headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ settings: { [route]: {
+                    enabled: toolAlertEnabledInput.checked,
+                    title: toolAlertTitleInput.value,
+                    description: toolAlertDescriptionInput.value
+                } } })
+            });
+            const data = await adminJson(response, 'Unable to save tool alert');
+            toolAlertSettings = data.settings || toolAlertSettings;
+            populateToolAlertForm();
+            setToolAlertStatus('Saved', 'success');
+        } catch (error) {
+            setToolAlertStatus(error.message || 'Save failed', 'error');
+        }
+    }
+
     async function saveCheckerSettings(event) {
         event.preventDefault();
         setCheckerStatus('Saving');
@@ -1744,6 +1798,7 @@
         } else if (activeView === 'checker') {
             loadCheckerSettings();
             loadSubPriceSettings();
+            loadToolAlertSettings();
         } else if (activeView === 'tickets') {
             loadAdminTickets();
         } else if (activeView === 'cards') {
@@ -1801,6 +1856,8 @@
         }
     });
     checkerSettingsForm?.addEventListener('submit', saveCheckerSettings);
+    toolAlertSettingsForm?.addEventListener('submit', saveToolAlertSettings);
+    toolAlertRouteInput?.addEventListener('change', populateToolAlertForm);
     subPriceSettingsForm?.addEventListener('submit', saveSubPriceSettings);
     document.querySelectorAll('.admin-ticket-filter').forEach((button) => {
         button.addEventListener('click', () => {
