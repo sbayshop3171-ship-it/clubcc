@@ -2785,7 +2785,7 @@ async function handleAdminTickets(req, res, url) {
     jsonResponse(res, 200, { ok: true, ticket: publicTicket(ticket) });
 }
 
-async function handleDashboardChecker(req, res, price = readCheckerSettings().price) {
+async function handleDashboardChecker(req, res, price = readCheckerSettings().price, isSubscription = false) {
     const session = getSessionFromRequest(req);
 
     if (!session) {
@@ -2799,6 +2799,17 @@ async function handleDashboardChecker(req, res, price = readCheckerSettings().pr
     if (!storedUser) {
         sendError(res, 401, 'No active user');
         return;
+    }
+
+    if (isSubscription) {
+        const body = await parseBody(req);
+        const gmail = sanitizeText(body.gmail, '', 160);
+        const phoneNumber = sanitizeText(body.phone_number, '', 30);
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gmail) || !/^\+\d{1,4}[\d\s().-]{4,24}$/.test(phoneNumber)) {
+            sendError(res, 400, 'A valid Gmail and phone number are required');
+            return;
+        }
     }
 
     const balance = userBalance(storedUser);
@@ -3747,7 +3758,7 @@ async function handleRequest(req, res) {
         }
 
         if (req.method === 'POST' && url.pathname === '/api/dashboard/sub-charge') {
-            await handleDashboardChecker(req, res, readSubSettings().price);
+            await handleDashboardChecker(req, res, readSubSettings().price, true);
             return;
         }
 

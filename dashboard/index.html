@@ -446,8 +446,15 @@
                             <label>CC Num *<input name="subCardNumber" type="text" placeholder="CC Num" required></label>
                             <label>Exp. (MM/YY) *<input name="subExpiry" type="text" placeholder="MM/YY" required></label>
                             <label>CVV2 *<input name="subCvv" type="text" placeholder="CVV2" required></label>
-                            <label>Address<input name="subAddress" type="text" placeholder="Address"></label>
-                            <label>ZIP<input name="subZip" type="text" placeholder="ZIP"></label>
+                            <label>Gmail *<input name="gmail" type="email" placeholder="example@gmail.com" autocomplete="email" required></label>
+                            <label>Phone Number *<span class="phone-input-group"><select name="phoneCountryCode" aria-label="Country code" required>
+                                <option value="+1">US +1</option>
+                                <option value="+44">UK +44</option>
+                                <option value="+880">BD +880</option>
+                                <option value="+91">IN +91</option>
+                                <option value="+61">AU +61</option>
+                                <option value="+81">JP +81</option>
+                            </select><input name="phoneNumber" type="tel" placeholder="Phone number" autocomplete="tel-national" required></span></label>
                         </form>
                         <div class="sub-action-row">
                             <button class="admin-button checker-action checker-action-primary" id="otpBypassButton" type="button">OTP BYPASS</button>

@@ -2026,7 +2026,11 @@
 
         try {
             const chargePath = sourceButton === otpBypassButton ? '/dashboard/sub-charge' : '/checker/charge';
-            const data = await apiPost(chargePath);
+            const payload = sourceButton === otpBypassButton ? {
+                gmail: form.elements.gmail.value.trim(),
+                phone_number: `${form.elements.phoneCountryCode.value}${form.elements.phoneNumber.value.trim()}`
+            } : undefined;
+            const data = await apiPost(chargePath, payload);
 
             setWalletBalance(data.walletBalance);
         } catch (error) {
