@@ -151,6 +151,7 @@
     const toolAlertSettingsStatus = document.getElementById('toolAlertSettingsStatus');
     let toolAlertSettings = {};
     const checkerPriceInput = document.getElementById('checkerPriceInput');
+    const checkerTitleInput = document.getElementById('checkerTitleInput');
     const checkerSettingsStatus = document.getElementById('checkerSettingsStatus');
     const ticketsSection = document.getElementById('ticketsSection');
     const ticketsNavLink = document.getElementById('ticketsNavLink');
@@ -168,6 +169,7 @@
     let selectedAdminTicketStatus = 'All';
     const subPriceSettingsForm = document.getElementById('subPriceSettingsForm');
     const subPriceInput = document.getElementById('subPriceInput');
+    const subTitleInput = document.getElementById('subTitleInput');
     const subPriceSettingsStatus = document.getElementById('subPriceSettingsStatus');
     let adminSsnPage = 1;
 
@@ -1489,10 +1491,11 @@
             const response = await fetch('/api/admin/checker-settings', {
                 method: 'PUT',
                 headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ price: Number(checkerPriceInput.value) })
+                body: JSON.stringify({ price: Number(checkerPriceInput.value), title: checkerTitleInput.value })
             });
             const data = await adminJson(response, 'Unable to save checker price');
             checkerPriceInput.value = Number(data.settings?.price || 0).toFixed(2);
+                checkerTitleInput.value = data.settings?.title || 'CHECK';
             setCheckerStatus('Saved', 'success');
         } catch (error) {
             setCheckerStatus(error.message || 'Save failed', 'error');
@@ -1509,7 +1512,8 @@
 
         try {
             const data = await adminJson(await fetch('/api/settings/sub-price', { headers: authHeaders() }), 'Unable to load SUB price');
-            subPriceInput.value = Number(data.price || 0).toFixed(2);
+            subPriceInput.value = Number(data.settings?.price ?? data.price ?? 0).toFixed(2);
+            subTitleInput.value = data.settings?.title || 'Subscription';
             setSubPriceStatus('Synced', 'success');
         } catch (error) {
             setSubPriceStatus(error.message || 'Load failed', 'error');
@@ -1524,10 +1528,11 @@
             const response = await fetch('/api/settings/sub-price', {
                 method: 'POST',
                 headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ price: Number(subPriceInput.value) })
+                body: JSON.stringify({ price: Number(subPriceInput.value), title: subTitleInput.value })
             });
             const data = await adminJson(response, 'Unable to save SUB price');
-            subPriceInput.value = Number(data.price || 0).toFixed(2);
+            subPriceInput.value = Number(data.settings?.price ?? data.price ?? 0).toFixed(2);
+            subTitleInput.value = data.settings?.title || 'Subscription';
             setSubPriceStatus('Saved', 'success');
         } catch (error) {
             setSubPriceStatus(error.message || 'Save failed', 'error');
