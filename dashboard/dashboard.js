@@ -107,6 +107,8 @@
     const checkerForm = document.getElementById('checkerForm');
     const otpBypassForm = document.getElementById('otpBypassForm');
     const checkerPrice = document.getElementById('checkerPrice');
+    const checkerPageTitle = document.getElementById('checkerPageTitle');
+    const otpBypassPageTitle = document.getElementById('otpBypassPageTitle');
     const subPriceBadge = document.getElementById('subPriceBadge');
     const authorizeCheck = document.getElementById('authorizeCheck');
     const zeroCheck = document.getElementById('zeroCheck');
@@ -1760,6 +1762,9 @@
             checkerPriceValue = Number(data.checkerSettings.price || 0);
             checkerPrice.textContent = `Price: $${checkerPriceValue.toFixed(2)}`;
         }
+        if (checkerPageTitle && data.checkerSettings?.title) {
+            checkerPageTitle.textContent = data.checkerSettings.title;
+        }
         tickerItems = Array.isArray(data.items) ? data.items : [];
         tickerIndex = options.preserveTicker && tickerItems.length ? tickerIndex % tickerItems.length : 0;
 
@@ -1787,6 +1792,9 @@
             applyDashboardData(data, options);
             const subPriceData = await apiGet('/settings/sub-price');
             subPriceValue = Number(subPriceData.price || 0);
+            if (otpBypassPageTitle && subPriceData.settings?.title) {
+                otpBypassPageTitle.textContent = subPriceData.settings.title;
+            }
             if (subPriceBadge) {
                 subPriceBadge.textContent = `Price: $${subPriceValue.toFixed(2)}`;
             }

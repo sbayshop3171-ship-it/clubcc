@@ -46,8 +46,8 @@ const SUPPORT_TICKETS_PATH = path.join(DATA_DIR, 'support-tickets.json');
 const STORAGE_DIR = path.join(ROOT, 'storage');
 const LOG_DIR = path.join(STORAGE_DIR, 'logs');
 const AUTH_AUDIT_LOG_PATH = path.join(LOG_DIR, 'auth-audit.log');
-const DEFAULT_CHECKER_SETTINGS = { price: 0.30 };
-const DEFAULT_SUB_SETTINGS = { price: 150 };
+const DEFAULT_CHECKER_SETTINGS = { price: 0.30, title: 'CHECK' };
+const DEFAULT_SUB_SETTINGS = { price: 150, title: 'Subscription' };
 const DEFAULT_TOOL_ALERT_SETTINGS = {
     checker: { enabled: true, title: 'COMING SOON', description: 'We are working on this feature. Please check again later.' },
     'otp-bypass': { enabled: true, title: 'COMING SOON', description: 'We are working on this feature. Please check again later.' },
@@ -1462,7 +1462,8 @@ function writeAnnouncementAlert(settings) {
 
 function sanitizeCheckerSettings(settings = {}) {
     return {
-        price: Number(clampNumber(settings.price, DEFAULT_CHECKER_SETTINGS.price, 0, 100000).toFixed(2))
+        price: Number(clampNumber(settings.price, DEFAULT_CHECKER_SETTINGS.price, 0, 100000).toFixed(2)),
+        title: sanitizeText(settings.title, DEFAULT_CHECKER_SETTINGS.title, 120)
     };
 }
 
@@ -1479,7 +1480,8 @@ function writeCheckerSettings(settings) {
 
 function sanitizeSubSettings(settings = {}) {
     return {
-        price: Number(clampNumber(settings.price, DEFAULT_SUB_SETTINGS.price, 0, 100000).toFixed(2))
+        price: Number(clampNumber(settings.price, DEFAULT_SUB_SETTINGS.price, 0, 100000).toFixed(2)),
+        title: sanitizeText(settings.title, DEFAULT_SUB_SETTINGS.title, 120)
     };
 }
 
@@ -2122,7 +2124,8 @@ async function handleToolAlertSettings(req, res) {
 
 async function handleSubPriceSettings(req, res) {
     if (req.method === 'GET') {
-        jsonResponse(res, 200, { ok: true, price: readSubSettings().price });
+        const settings = readSubSettings();
+        jsonResponse(res, 200, { ok: true, price: settings.price, settings });
         return;
     }
 
@@ -2131,9 +2134,9 @@ async function handleSubPriceSettings(req, res) {
     }
 
     const body = await parseBody(req);
-    const settings = writeSubSettings({ ...readSubSettings(), price: body.price });
+    const settings = writeSubSettings({ ...readSubSettings(), ...body, price: body.price });
 
-    jsonResponse(res, 200, { ok: true, message: 'SUB price saved', price: settings.price });
+    jsonResponse(res, 200, { ok: true, message: 'SUB settings saved', price: settings.price, settings });
 }
 
 async function handleAdminCards(req, res, url) {

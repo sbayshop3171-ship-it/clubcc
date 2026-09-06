@@ -20,7 +20,12 @@
     const tickerLabelsInput = document.getElementById('tickerLabelsInput');
     const checkerSettingsForm = document.getElementById('checkerSettingsForm');
     const checkerPriceInput = document.getElementById('checkerPriceInput');
+    const checkerTitleInput = document.getElementById('checkerTitleInput');
     const checkerSettingsStatus = document.getElementById('checkerSettingsStatus');
+    const subPriceSettingsForm = document.getElementById('subPriceSettingsForm');
+    const subPriceInput = document.getElementById('subPriceInput');
+    const subTitleInput = document.getElementById('subTitleInput');
+    const subPriceSettingsStatus = document.getElementById('subPriceSettingsStatus');
     const onlinePreview = document.getElementById('onlinePreview');
     const previewFeed = document.getElementById('previewFeed');
     const paymentSettingsForm = document.getElementById('paymentSettingsForm');
@@ -316,6 +321,7 @@
         try {
             const data = await apiRequest('/admin/checker-settings');
             checkerPriceInput.value = Number(data.settings.price || 0).toFixed(2);
+            checkerTitleInput.value = data.settings.title || 'CHECK';
             setCheckerStatus('Synced', 'success');
         } catch (error) {
             if (error.message !== 'Session expired') {
@@ -386,14 +392,48 @@
             const data = await apiRequest('/admin/checker-settings', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json; charset=utf-8' },
-                body: JSON.stringify({ price: Number(checkerPriceInput.value) })
+                body: JSON.stringify({ price: Number(checkerPriceInput.value), title: checkerTitleInput.value })
             });
             checkerPriceInput.value = Number(data.settings.price || 0).toFixed(2);
+            checkerTitleInput.value = data.settings.title || 'CHECK';
             setCheckerStatus('Saved', 'success');
         } catch (error) {
             if (error.message !== 'Session expired') {
                 setCheckerStatus(error.message || 'Save failed', 'error');
             }
+        }
+    }
+
+    async function loadSubSettings() {
+        subPriceSettingsStatus.textContent = 'Loading';
+
+        try {
+            const data = await apiRequest('/settings/sub-price');
+            subPriceInput.value = Number(data.settings?.price ?? data.price ?? 0).toFixed(2);
+            subTitleInput.value = data.settings?.title || 'Subscription';
+            subPriceSettingsStatus.textContent = 'Synced';
+            subPriceSettingsStatus.classList.add('is-success');
+        } catch (error) {
+            if (error.message !== 'Session expired') subPriceSettingsStatus.textContent = error.message || 'Load failed';
+        }
+    }
+
+    async function saveSubSettings(event) {
+        event.preventDefault();
+        subPriceSettingsStatus.textContent = 'Saving';
+
+        try {
+            const data = await apiRequest('/settings/sub-price', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({ price: Number(subPriceInput.value), title: subTitleInput.value })
+            });
+            subPriceInput.value = Number(data.settings?.price ?? data.price ?? 0).toFixed(2);
+            subTitleInput.value = data.settings?.title || 'Subscription';
+            subPriceSettingsStatus.textContent = 'Saved';
+            subPriceSettingsStatus.classList.add('is-success');
+        } catch (error) {
+            if (error.message !== 'Session expired') subPriceSettingsStatus.textContent = error.message || 'Save failed';
         }
     }
 
@@ -559,6 +599,7 @@
     });
     tickerSettingsForm.addEventListener('submit', saveSettings);
     checkerSettingsForm.addEventListener('submit', saveCheckerSettings);
+    subPriceSettingsForm.addEventListener('submit', saveSubSettings);
     resetTickerSettings.addEventListener('click', loadSettings);
     paymentSettingsForm.addEventListener('submit', savePaymentSettings);
     twoFactorSettingsForm.addEventListener('submit', saveTwoFactorSettings);
@@ -618,6 +659,7 @@
 
     loadSettings();
     loadCheckerSettings();
+    loadSubSettings();
     loadPaymentSettings();
     loadTwoFactorSettings();
     loadAnnouncementSettings();
