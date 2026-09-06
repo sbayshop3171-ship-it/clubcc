@@ -1802,23 +1802,16 @@ body.cards-view-active .cards-table tr:hover td {
     border-radius: 4px;
 }
 
-.phone-input-group {
-    display: flex;
-    gap: 8px;
+.iti {
+    width: 100%;
 }
 
-.phone-input-group select {
-    flex: 0 0 92px;
-    min-width: 0;
-    color: var(--text-primary);
-    background: var(--surface-input);
-    border: 1px solid var(--border-subtle);
-    border-radius: 4px;
-    padding: 10px 6px;
+.iti__selected-country {
+    background: rgba(80, 110, 133, 0.46);
 }
 
-.phone-input-group input {
-    min-width: 0;
+.iti input[type="tel"] {
+    padding-left: 88px;
 }
 
 .admin-payment-sidebar nav a:hover,

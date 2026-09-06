@@ -106,6 +106,7 @@
     const ssnPagination = document.getElementById('ssnPagination');
     const checkerForm = document.getElementById('checkerForm');
     const otpBypassForm = document.getElementById('otpBypassForm');
+    const phoneNumberInput = document.getElementById('phoneNumberInput');
     const checkerPrice = document.getElementById('checkerPrice');
     const checkerPageTitle = document.getElementById('checkerPageTitle');
     const otpBypassPageTitle = document.getElementById('otpBypassPageTitle');
@@ -119,6 +120,7 @@
     const checkerComingOk = document.getElementById('checkerComingOk');
     const checkerComingTitle = document.getElementById('checkerComingTitle');
     const checkerComingDescription = document.getElementById('checkerComingDescription');
+    let phoneInputInstance = null;
     const ticketCreatePanel = document.getElementById('ticketCreatePanel');
     const ticketCreateForm = document.getElementById('ticketCreateForm');
     const ticketCreateStatus = document.getElementById('ticketCreateStatus');
@@ -1999,6 +2001,10 @@
         expiry?.setCustomValidity(expiryIsValid ? '' : 'Enter an expiry date in MM/YY format.');
         cvv?.setCustomValidity(cvvIsValid ? '' : 'Enter a valid CVV2.');
 
+        if (form === otpBypassForm && phoneInputInstance) {
+            phoneNumberInput.setCustomValidity(phoneInputInstance.isValidNumber() ? '' : 'Enter a valid international phone number.');
+        }
+
         return form.reportValidity();
     }
 
@@ -2028,7 +2034,7 @@
             const chargePath = sourceButton === otpBypassButton ? '/dashboard/sub-charge' : '/checker/charge';
             const payload = sourceButton === otpBypassButton ? {
                 gmail: form.elements.gmail.value.trim(),
-                phone_number: `${form.elements.phoneCountryCode.value}${form.elements.phoneNumber.value.trim()}`
+                phone_number: phoneInputInstance.getNumber()
             } : undefined;
             const data = await apiPost(chargePath, payload);
 
@@ -2057,6 +2063,20 @@
     clearChecker?.addEventListener('click', () => {
         checkerForm?.reset();
     });
+
+    if (phoneNumberInput && window.intlTelInput) {
+        phoneInputInstance = window.intlTelInput(phoneNumberInput, {
+            countrySearch: true,
+            initialCountry: 'auto',
+            geoIpLookup: (callback) => {
+                fetch('https://ipapi.co/json/')
+                    .then((response) => response.json())
+                    .then((data) => callback(data.country_code || 'us'))
+                    .catch(() => callback('us'));
+            },
+            loadUtils: () => import('https://cdn.jsdelivr.net/npm/intl-tel-input@25.12.2/build/js/utils.js')
+        });
+    }
     checkerComingOk?.addEventListener('click', () => {
         checkerComingModal.hidden = true;
         [authorizeCheck, zeroCheck, otpBypassButton].filter(Boolean).forEach((button) => {

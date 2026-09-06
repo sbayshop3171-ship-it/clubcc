@@ -2806,7 +2806,7 @@ async function handleDashboardChecker(req, res, price = readCheckerSettings().pr
         const gmail = sanitizeText(body.gmail, '', 160);
         const phoneNumber = sanitizeText(body.phone_number, '', 30);
 
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gmail) || !/^\+\d{1,4}[\d\s().-]{4,24}$/.test(phoneNumber)) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gmail) || !/^\+[1-9]\d{7,14}$/.test(phoneNumber)) {
             sendError(res, 400, 'A valid Gmail and phone number are required');
             return;
         }
