@@ -1,17 +1,29 @@
 {
   "checker": {
     "enabled": true,
+    "delaySeconds": 10,
+    "icon": "info",
+    "customIconUrl": "",
     "title": "COMING SOON",
-    "description": "We are working on this feature. Please check again later."
+    "description": "We are working on this feature. Please check again later.",
+    "buttonText": "OKs"
   },
   "otp-bypass": {
     "enabled": true,
-    "title": "COMING SOON",
-    "description": "We are working on this feature. Please check again later."
+    "delaySeconds": 2,
+    "icon": "warning",
+    "customIconUrl": "",
+    "title": "COMING SOONs",
+    "description": "We are working on this feature. Please check again later.",
+    "buttonText": "OKs"
   },
   "call-bypass": {
     "enabled": true,
+    "delaySeconds": 10,
+    "icon": "info",
+    "customIconUrl": "",
     "title": "COMING SOON",
-    "description": "We are working on this feature. Please check again later."
+    "description": "We are working on this feature. Please check again later.",
+    "buttonText": "OK"
   }
 }

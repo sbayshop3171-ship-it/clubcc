@@ -25,6 +25,7 @@ function walk(directory) {
     }
 }
 
+
 walk(root);
 
 for (const file of files) {
