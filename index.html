@@ -534,6 +534,27 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                                     <label class="form-label" for="toolAlertTitleInput">Popup Title</label>
                                     <input class="form-control" id="toolAlertTitleInput" maxlength="120" required>
                                 </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="toolAlertDelayInput">Loading Duration (seconds)</label>
+                                    <input class="form-control" id="toolAlertDelayInput" type="number" min="0" max="3600" step="1" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="toolAlertIconInput">Modal Icon</label>
+                                    <select class="form-select" id="toolAlertIconInput">
+                                        <option value="info">Info (i)</option>
+                                        <option value="warning">Warning (!)</option>
+                                        <option value="check">Check</option>
+                                        <option value="custom">Custom image URL</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="toolAlertButtonInput">Modal Button Text</label>
+                                    <input class="form-control" id="toolAlertButtonInput" maxlength="60" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="toolAlertIconUrlInput">Custom Icon/Image URL</label>
+                                    <input class="form-control" id="toolAlertIconUrlInput" type="url" maxlength="500" placeholder="https://example.com/icon.png">
+                                </div>
                                 <div class="col-12">
                                     <label class="form-label" for="toolAlertDescriptionInput">Popup Description</label>
                                     <textarea class="form-control" id="toolAlertDescriptionInput" rows="3" maxlength="2000" required></textarea>

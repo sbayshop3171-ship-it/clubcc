@@ -1842,6 +1842,13 @@ body.cards-view-active .cards-table tr:hover td {
     padding-left: 88px;
 }
 
+.checker-info-icon img {
+    display: block;
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
 .admin-payment-sidebar nav a:hover,
 .admin-payment-sidebar nav a:focus-visible,
 .admin-payment-sidebar nav a.is-active {

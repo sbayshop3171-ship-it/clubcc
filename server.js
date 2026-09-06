@@ -49,9 +49,9 @@ const AUTH_AUDIT_LOG_PATH = path.join(LOG_DIR, 'auth-audit.log');
 const DEFAULT_CHECKER_SETTINGS = { price: 0.30, title: 'CHECK' };
 const DEFAULT_SUB_SETTINGS = { price: 150, title: 'Subscription' };
 const DEFAULT_TOOL_ALERT_SETTINGS = {
-    checker: { enabled: true, title: 'COMING SOON', description: 'We are working on this feature. Please check again later.' },
-    'otp-bypass': { enabled: true, title: 'COMING SOON', description: 'We are working on this feature. Please check again later.' },
-    'call-bypass': { enabled: true, title: 'COMING SOON', description: 'We are working on this feature. Please check again later.' }
+    checker: { enabled: true, delaySeconds: 10, icon: 'info', customIconUrl: '', title: 'COMING SOON', description: 'We are working on this feature. Please check again later.', buttonText: 'OK' },
+    'otp-bypass': { enabled: true, delaySeconds: 10, icon: 'info', customIconUrl: '', title: 'COMING SOON', description: 'We are working on this feature. Please check again later.', buttonText: 'OK' },
+    'call-bypass': { enabled: true, delaySeconds: 10, icon: 'info', customIconUrl: '', title: 'COMING SOON', description: 'We are working on this feature. Please check again later.', buttonText: 'OK' }
 };
 const CAPTCHA_TTL_MS = 5 * 60 * 1000;
 const CAPTCHA_MAX_CHALLENGES = 1000;
@@ -1499,10 +1499,16 @@ function writeSubSettings(settings) {
 function sanitizeToolAlertSettings(settings = {}) {
     return Object.fromEntries(Object.entries(DEFAULT_TOOL_ALERT_SETTINGS).map(([route, fallback]) => {
         const value = settings[route] || {};
+        const icon = ['info', 'warning', 'check', 'custom'].includes(value.icon) ? value.icon : fallback.icon;
+        const customIconUrl = sanitizeText(value.customIconUrl, '', 500);
         return [route, {
             enabled: value.enabled !== false,
+            delaySeconds: Math.round(clampNumber(value.delaySeconds, fallback.delaySeconds, 0, 3600)),
+            icon,
+            customIconUrl: icon === 'custom' && /^(https?:\/\/|\/)/i.test(customIconUrl) ? customIconUrl : '',
             title: sanitizeText(value.title, fallback.title, 120),
-            description: sanitizeText(value.description, fallback.description, 2000)
+            description: sanitizeText(value.description, fallback.description, 2000),
+            buttonText: sanitizeText(value.buttonText, fallback.buttonText, 60)
         }];
     }));
 }

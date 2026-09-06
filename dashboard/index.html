@@ -743,13 +743,13 @@
         <section class="checker-dialog glass-card" role="alertdialog" aria-modal="true" aria-labelledby="checkerProcessingTitle">
             <span class="checker-spinner" aria-hidden="true"></span>
             <h2 id="checkerProcessingTitle">Processing Request...</h2>
-            <p>Please wait 10 seconds while system is checking...</p>
+            <p id="checkerProcessingDescription">Please wait while system is checking...</p>
         </section>
     </div>
 
     <div class="modal-backdrop checker-coming-modal" id="checkerComingModal" hidden>
         <section class="checker-dialog glass-card" role="dialog" aria-modal="true" aria-labelledby="checkerComingTitle">
-            <span class="checker-info-icon" aria-hidden="true">i</span>
+            <span class="checker-info-icon" id="checkerComingIcon" aria-hidden="true">i</span>
             <h2 id="checkerComingTitle">COMING SOON</h2>
             <p id="checkerComingDescription">We are working on this feature.<br>Please check again later.</p>
             <button class="admin-button checker-ok-button" id="checkerComingOk" type="button">OK</button>

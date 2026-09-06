@@ -146,6 +146,10 @@
     const toolAlertSettingsForm = document.getElementById('toolAlertSettingsForm');
     const toolAlertRouteInput = document.getElementById('toolAlertRouteInput');
     const toolAlertTitleInput = document.getElementById('toolAlertTitleInput');
+    const toolAlertDelayInput = document.getElementById('toolAlertDelayInput');
+    const toolAlertIconInput = document.getElementById('toolAlertIconInput');
+    const toolAlertIconUrlInput = document.getElementById('toolAlertIconUrlInput');
+    const toolAlertButtonInput = document.getElementById('toolAlertButtonInput');
     const toolAlertDescriptionInput = document.getElementById('toolAlertDescriptionInput');
     const toolAlertEnabledInput = document.getElementById('toolAlertEnabledInput');
     const toolAlertSettingsStatus = document.getElementById('toolAlertSettingsStatus');
@@ -1444,6 +1448,10 @@
     function populateToolAlertForm() {
         const setting = toolAlertSettings[toolAlertRouteInput.value] || {};
         toolAlertTitleInput.value = setting.title || '';
+        toolAlertDelayInput.value = setting.delaySeconds ?? 10;
+        toolAlertIconInput.value = setting.icon || 'info';
+        toolAlertIconUrlInput.value = setting.customIconUrl || '';
+        toolAlertButtonInput.value = setting.buttonText || 'OK';
         toolAlertDescriptionInput.value = setting.description || '';
         toolAlertEnabledInput.checked = setting.enabled !== false;
     }
@@ -1470,8 +1478,12 @@
                 headers: { ...authHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ settings: { [route]: {
                     enabled: toolAlertEnabledInput.checked,
+                    delaySeconds: Number(toolAlertDelayInput.value),
+                    icon: toolAlertIconInput.value,
+                    customIconUrl: toolAlertIconUrlInput.value,
                     title: toolAlertTitleInput.value,
-                    description: toolAlertDescriptionInput.value
+                    description: toolAlertDescriptionInput.value,
+                    buttonText: toolAlertButtonInput.value
                 } } })
             });
             const data = await adminJson(response, 'Unable to save tool alert');

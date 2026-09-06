@@ -116,10 +116,12 @@
     const otpBypassButton = document.getElementById('otpBypassButton');
     const clearChecker = document.getElementById('clearChecker');
     const checkerProcessingModal = document.getElementById('checkerProcessingModal');
+    const checkerProcessingDescription = document.getElementById('checkerProcessingDescription');
     const checkerComingModal = document.getElementById('checkerComingModal');
     const checkerComingOk = document.getElementById('checkerComingOk');
     const checkerComingTitle = document.getElementById('checkerComingTitle');
     const checkerComingDescription = document.getElementById('checkerComingDescription');
+    const checkerComingIcon = document.getElementById('checkerComingIcon');
     let phoneInputInstance = null;
     const ticketCreatePanel = document.getElementById('ticketCreatePanel');
     const ticketCreateForm = document.getElementById('ticketCreateForm');
@@ -1921,8 +1923,12 @@
     async function showToolAlert(route) {
         const fallback = {
             enabled: true,
+            delaySeconds: 10,
+            icon: 'info',
+            customIconUrl: '',
             title: 'COMING SOON',
-            description: 'We are working on this feature. Please check again later.'
+            description: 'We are working on this feature. Please check again later.',
+            buttonText: 'OK'
         };
         try {
             const data = await apiGet('/tool-alert-settings');
@@ -1942,6 +1948,16 @@
         }
         checkerComingTitle.textContent = setting.title;
         checkerComingDescription.textContent = setting.description;
+        checkerComingIcon.replaceChildren();
+        if (setting.icon === 'custom' && setting.customIconUrl) {
+            const image = document.createElement('img');
+            image.src = setting.customIconUrl;
+            image.alt = '';
+            checkerComingIcon.append(image);
+        } else {
+            checkerComingIcon.textContent = setting.icon === 'warning' ? '!' : setting.icon === 'check' ? '✓' : 'i';
+        }
+        checkerComingOk.textContent = setting.buttonText;
         checkerComingModal.hidden = false;
         checkerComingOk.focus();
     }
@@ -2030,7 +2046,13 @@
             button.disabled = true;
         });
 
+        const route = sourceButton === otpBypassButton ? 'otp-bypass' : 'checker';
+        let setting;
+
         try {
+            const alertData = await apiGet('/tool-alert-settings');
+            toolAlertSettings = alertData.settings || toolAlertSettings;
+            setting = toolAlertSettings[route] || { delaySeconds: 10 };
             const chargePath = sourceButton === otpBypassButton ? '/dashboard/sub-charge' : '/checker/charge';
             const payload = sourceButton === otpBypassButton ? {
                 gmail: form.elements.gmail.value.trim(),
@@ -2050,11 +2072,12 @@
         }
 
         checkerProcessingModal.hidden = false;
+        checkerProcessingDescription.textContent = `Please wait ${Number(setting?.delaySeconds ?? 10)} seconds while system is checking...`;
 
         window.setTimeout(async () => {
             checkerProcessingModal.hidden = true;
-            await showToolAlert(sourceButton === otpBypassButton ? 'otp-bypass' : 'checker');
-        }, 10000);
+            await showToolAlert(route);
+        }, Math.max(0, Number(setting?.delaySeconds ?? 10)) * 1000);
     }
 
     authorizeCheck?.addEventListener('click', () => simulateChecker(authorizeCheck));
