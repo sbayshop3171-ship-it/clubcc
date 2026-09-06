@@ -103,6 +103,8 @@ const PUBLIC_ROUTES = new Map([
     ['/admin/purchases/pending/', '/index.html'],
     ['/admin/checker', '/index.html'],
     ['/admin/checker/', '/index.html'],
+    ['/admin/otp-bypass', '/index.html'],
+    ['/admin/otp-bypass/', '/index.html'],
     ['/admin/tickets', '/index.html'],
     ['/admin/tickets/', '/index.html'],
     ['/admin/profile', '/index.html'],

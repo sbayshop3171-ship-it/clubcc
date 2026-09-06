@@ -9,6 +9,7 @@
         purchases: '/admin/purchases',
         'pending-purchases': '/admin/purchases/pending',
         checker: '/admin/checker',
+        'otp-bypass': '/admin/otp-bypass',
         tickets: '/admin/tickets',
         ssn: '/admin',
         payment: '/admin/payment',
@@ -28,10 +29,12 @@
     const purchasesNavLink = document.getElementById('purchasesNavLink');
     const pendingPurchasesNavLink = document.getElementById('pendingPurchasesNavLink');
     const checkerNavLink = document.getElementById('checkerNavLink');
+    const otpBypassNavLink = document.getElementById('otpBypassNavLink');
     const ssnNavLink = document.getElementById('ssnNavLink');
     const dashboardNavLink = document.getElementById('dashboardNavLink');
     const cardsSection = document.getElementById('cardsSection');
     const checkerSection = document.getElementById('checkerSection');
+    const otpBypassSection = document.getElementById('otpBypassSection');
     const profileSection = document.getElementById('profileSection');
     const settingsSection = document.getElementById('settingsSection');
     const paymentSection = document.getElementById('paymentSection');
@@ -143,15 +146,7 @@
     const adminSsnTableBody = document.getElementById('adminSsnTableBody');
     const adminSsnPagination = document.getElementById('adminSsnPagination');
     const checkerSettingsForm = document.getElementById('checkerSettingsForm');
-    const toolAlertSettingsForm = document.getElementById('toolAlertSettingsForm');
-    const toolAlertRouteInput = document.getElementById('toolAlertRouteInput');
-    const toolAlertTitleInput = document.getElementById('toolAlertTitleInput');
-    const toolAlertDelayInput = document.getElementById('toolAlertDelayInput');
-    const toolAlertIconInput = document.getElementById('toolAlertIconInput');
-    const toolAlertIconUrlInput = document.getElementById('toolAlertIconUrlInput');
-    const toolAlertButtonInput = document.getElementById('toolAlertButtonInput');
-    const toolAlertDescriptionInput = document.getElementById('toolAlertDescriptionInput');
-    const toolAlertEnabledInput = document.getElementById('toolAlertEnabledInput');
+    const toolAlertSettingsForms = document.querySelectorAll('[data-tool-alert-route]');
     const toolAlertSettingsStatus = document.getElementById('toolAlertSettingsStatus');
     let toolAlertSettings = {};
     const checkerPriceInput = document.getElementById('checkerPriceInput');
@@ -1445,15 +1440,16 @@
         toolAlertSettingsStatus.className = `admin-content-status${type === 'error' ? ' text-danger' : type === 'success' ? ' text-success' : ''}`;
     }
 
-    function populateToolAlertForm() {
-        const setting = toolAlertSettings[toolAlertRouteInput.value] || {};
-        toolAlertTitleInput.value = setting.title || '';
-        toolAlertDelayInput.value = setting.delaySeconds ?? 10;
-        toolAlertIconInput.value = setting.icon || 'info';
-        toolAlertIconUrlInput.value = setting.customIconUrl || '';
-        toolAlertButtonInput.value = setting.buttonText || 'OK';
-        toolAlertDescriptionInput.value = setting.description || '';
-        toolAlertEnabledInput.checked = setting.enabled !== false;
+    function populateToolAlertForm(form) {
+        const route = form.dataset.toolAlertRoute;
+        const setting = toolAlertSettings[route] || {};
+        form.querySelector('[data-alert-title]').value = setting.title || '';
+        form.querySelector('[data-alert-delay]').value = setting.delaySeconds ?? 10;
+        form.querySelector('[data-alert-icon]').value = setting.icon || 'info';
+        form.querySelector('[data-alert-icon-url]').value = setting.customIconUrl || '';
+        form.querySelector('[data-alert-button]').value = setting.buttonText || 'OK';
+        form.querySelector('[data-alert-description]').value = setting.description || '';
+        form.querySelector('[data-alert-enabled]').checked = setting.enabled !== false;
     }
 
     async function loadToolAlertSettings() {
@@ -1461,7 +1457,7 @@
         try {
             const data = await adminJson(await fetch('/api/admin/tool-alert-settings', { headers: authHeaders() }), 'Unable to load tool alerts');
             toolAlertSettings = data.settings || {};
-            populateToolAlertForm();
+            toolAlertSettingsForms.forEach((form) => populateToolAlertForm(form));
             setToolAlertStatus('Synced', 'success');
         } catch (error) {
             setToolAlertStatus(error.message || 'Load failed', 'error');
@@ -1471,24 +1467,25 @@
     async function saveToolAlertSettings(event) {
         event.preventDefault();
         setToolAlertStatus('Saving');
-        const route = toolAlertRouteInput.value;
+        const form = event.currentTarget;
+        const route = form.dataset.toolAlertRoute;
         try {
             const response = await fetch('/api/admin/tool-alert-settings', {
                 method: 'PUT',
                 headers: { ...authHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ settings: { [route]: {
-                    enabled: toolAlertEnabledInput.checked,
-                    delaySeconds: Number(toolAlertDelayInput.value),
-                    icon: toolAlertIconInput.value,
-                    customIconUrl: toolAlertIconUrlInput.value,
-                    title: toolAlertTitleInput.value,
-                    description: toolAlertDescriptionInput.value,
-                    buttonText: toolAlertButtonInput.value
+                    enabled: form.querySelector('[data-alert-enabled]').checked,
+                    delaySeconds: Number(form.querySelector('[data-alert-delay]').value),
+                    icon: form.querySelector('[data-alert-icon]').value,
+                    customIconUrl: form.querySelector('[data-alert-icon-url]').value,
+                    title: form.querySelector('[data-alert-title]').value,
+                    description: form.querySelector('[data-alert-description]').value,
+                    buttonText: form.querySelector('[data-alert-button]').value
                 } } })
             });
             const data = await adminJson(response, 'Unable to save tool alert');
             toolAlertSettings = data.settings || toolAlertSettings;
-            populateToolAlertForm();
+            populateToolAlertForm(form);
             setToolAlertStatus('Saved', 'success');
         } catch (error) {
             setToolAlertStatus(error.message || 'Save failed', 'error');
@@ -1808,6 +1805,7 @@
         purchasesSection.hidden = activeView !== 'purchases';
         pendingPurchasesSection.hidden = activeView !== 'pending-purchases';
         checkerSection.hidden = activeView !== 'checker';
+        otpBypassSection.hidden = activeView !== 'otp-bypass';
         ticketsSection.hidden = activeView !== 'tickets';
         ssnSection.hidden = activeView !== 'ssn';
         profileSection.hidden = activeView !== 'profile';
@@ -1824,6 +1822,7 @@
         purchasesNavLink?.classList.toggle('active', activeView === 'purchases');
         pendingPurchasesNavLink?.classList.toggle('active', activeView === 'pending-purchases');
         checkerNavLink?.classList.toggle('active', activeView === 'checker');
+        otpBypassNavLink?.classList.toggle('active', activeView === 'otp-bypass');
         ticketsNavLink?.classList.toggle('active', activeView === 'tickets');
         ssnNavLink?.classList.toggle('active', activeView === 'ssn');
         paymentNavLink?.classList.toggle('active', activeView === 'payment');
@@ -1839,7 +1838,7 @@
             loadVirtualCards();
         } else if (activeView === 'users') {
             loadUsers();
-        } else if (activeView === 'checker') {
+        } else if (activeView === 'checker' || activeView === 'otp-bypass') {
             loadCheckerSettings();
             loadSubPriceSettings();
             loadToolAlertSettings();
@@ -1900,8 +1899,7 @@
         }
     });
     checkerSettingsForm?.addEventListener('submit', saveCheckerSettings);
-    toolAlertSettingsForm?.addEventListener('submit', saveToolAlertSettings);
-    toolAlertRouteInput?.addEventListener('change', populateToolAlertForm);
+    toolAlertSettingsForms.forEach((form) => form.addEventListener('submit', saveToolAlertSettings));
     subPriceSettingsForm?.addEventListener('submit', saveSubPriceSettings);
     document.querySelectorAll('.admin-ticket-filter').forEach((button) => {
         button.addEventListener('click', () => {

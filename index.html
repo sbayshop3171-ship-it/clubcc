@@ -81,7 +81,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/admin/checker" class="nav-link sidebar-link py-3" data-admin-view="checker">
+                <a href="/admin/otp-bypass" class="nav-link sidebar-link py-3" id="otpBypassNavLink" data-admin-view="otp-bypass">
                     <iconify-icon icon="mdi:shield-key-outline" width="24" height="24"></iconify-icon>
                     OTP Bypass
                 </a>
@@ -520,27 +520,19 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                         <span class="admin-content-status" id="toolAlertSettingsStatus" role="status" aria-live="polite">Loading</span>
                     </div>
                     <div class="card-body">
-                        <form id="toolAlertSettingsForm" autocomplete="off">
+                        <form id="checkerAlertSettingsForm" data-tool-alert-route="checker" autocomplete="off">
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label class="form-label" for="toolAlertRouteInput">Feature / Route</label>
-                                    <select class="form-select" id="toolAlertRouteInput">
-                                        <option value="checker">Checkers</option>
-                                        <option value="otp-bypass">OTP Bypass</option>
-                                        <option value="call-bypass">Call Bypass</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-8">
-                                    <label class="form-label" for="toolAlertTitleInput">Popup Title</label>
-                                    <input class="form-control" id="toolAlertTitleInput" maxlength="120" required>
+                                    <label class="form-label" for="checkerAlertTitleInput">Alert Title</label>
+                                    <input class="form-control" id="checkerAlertTitleInput" data-alert-title maxlength="120" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label" for="toolAlertDelayInput">Loading Duration (seconds)</label>
-                                    <input class="form-control" id="toolAlertDelayInput" type="number" min="0" max="3600" step="1" required>
+                                    <label class="form-label" for="checkerAlertDelayInput">Delay Duration (seconds)</label>
+                                    <input class="form-control" id="checkerAlertDelayInput" data-alert-delay type="number" min="0" max="3600" step="1" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label" for="toolAlertIconInput">Modal Icon</label>
-                                    <select class="form-select" id="toolAlertIconInput">
+                                    <label class="form-label" for="checkerAlertIconInput">Icon Name or Image URL</label>
+                                    <select class="form-select" id="checkerAlertIconInput" data-alert-icon>
                                         <option value="info">Info (i)</option>
                                         <option value="warning">Warning (!)</option>
                                         <option value="check">Check</option>
@@ -548,22 +540,46 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                                     </select>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label" for="toolAlertButtonInput">Modal Button Text</label>
-                                    <input class="form-control" id="toolAlertButtonInput" maxlength="60" required>
+                                    <label class="form-label" for="checkerAlertButtonInput">Button Label</label>
+                                    <input class="form-control" id="checkerAlertButtonInput" data-alert-button maxlength="60" required>
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label" for="toolAlertIconUrlInput">Custom Icon/Image URL</label>
-                                    <input class="form-control" id="toolAlertIconUrlInput" type="url" maxlength="500" placeholder="https://example.com/icon.png">
+                                    <label class="form-label" for="checkerAlertIconUrlInput">Custom Icon/Image URL</label>
+                                    <input class="form-control" id="checkerAlertIconUrlInput" data-alert-icon-url type="url" maxlength="500" placeholder="https://example.com/icon.png">
                                 </div>
                                 <div class="col-12">
-                                    <label class="form-label" for="toolAlertDescriptionInput">Popup Description</label>
-                                    <textarea class="form-control" id="toolAlertDescriptionInput" rows="3" maxlength="2000" required></textarea>
+                                    <label class="form-label" for="checkerAlertDescriptionInput">Alert Body Text</label>
+                                    <textarea class="form-control" id="checkerAlertDescriptionInput" data-alert-description rows="3" maxlength="2000" required></textarea>
                                 </div>
                                 <div class="col-md-4 form-check form-switch ms-2">
-                                    <input class="form-check-input" id="toolAlertEnabledInput" type="checkbox">
-                                    <label class="form-check-label" for="toolAlertEnabledInput">Enable popup for this route</label>
+                                    <input class="form-check-input" id="checkerAlertEnabledInput" data-alert-enabled type="checkbox">
+                                    <label class="form-check-label" for="checkerAlertEnabledInput">Enable popup for Checker</label>
                                 </div>
-                                <div class="col-12"><button class="btn btn-dark" type="submit">Save Tool Alert</button></div>
+                                <div class="col-12"><button class="btn btn-dark" type="submit">Save Settings</button></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="otpBypassSection" class="admin-dashboard-section py-4" data-admin-view-panel="otp-bypass" hidden>
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+                    <div><h5 class="mb-1">OTP Bypass</h5><p class="mb-0 text-muted">Configure the OTP Bypass loading delay and alert modal.</p></div>
+                    <span class="admin-content-status" id="otpAlertSettingsStatus" role="status" aria-live="polite">Loading</span>
+                </div>
+                <div class="card border-0 shadow-sm admin-content-card">
+                    <div class="card-header bg-white"><span class="fw-semibold">OTP Bypass Alert Settings</span></div>
+                    <div class="card-body">
+                        <form id="otpAlertSettingsForm" data-tool-alert-route="otp-bypass" autocomplete="off">
+                            <div class="row g-3">
+                                <div class="col-md-8"><label class="form-label" for="otpAlertTitleInput">Alert Title</label><input class="form-control" id="otpAlertTitleInput" data-alert-title maxlength="120" required></div>
+                                <div class="col-md-4"><label class="form-label" for="otpAlertDelayInput">Delay Duration (seconds)</label><input class="form-control" id="otpAlertDelayInput" data-alert-delay type="number" min="0" max="3600" step="1" required></div>
+                                <div class="col-md-4"><label class="form-label" for="otpAlertIconInput">Icon Name or Image URL</label><select class="form-select" id="otpAlertIconInput" data-alert-icon><option value="info">Info (i)</option><option value="warning">Warning (!)</option><option value="check">Check</option><option value="custom">Custom image URL</option></select></div>
+                                <div class="col-md-4"><label class="form-label" for="otpAlertButtonInput">Button Label</label><input class="form-control" id="otpAlertButtonInput" data-alert-button maxlength="60" required></div>
+                                <div class="col-md-4"><label class="form-label" for="otpAlertIconUrlInput">Custom Icon/Image URL</label><input class="form-control" id="otpAlertIconUrlInput" data-alert-icon-url type="url" maxlength="500" placeholder="https://example.com/icon.png"></div>
+                                <div class="col-12"><label class="form-label" for="otpAlertDescriptionInput">Alert Body Text</label><textarea class="form-control" id="otpAlertDescriptionInput" data-alert-description rows="3" maxlength="2000" required></textarea></div>
+                                <div class="col-md-4 form-check form-switch ms-2"><input class="form-check-input" id="otpAlertEnabledInput" data-alert-enabled type="checkbox"><label class="form-check-label" for="otpAlertEnabledInput">Enable popup for OTP Bypass</label></div>
+                                <div class="col-12"><button class="btn btn-dark" type="submit">Save Settings</button></div>
                             </div>
                         </form>
                     </div>
