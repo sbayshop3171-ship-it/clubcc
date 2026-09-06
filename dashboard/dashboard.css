@@ -1810,6 +1810,34 @@ body.cards-view-active .cards-table tr:hover td {
     background: rgba(80, 110, 133, 0.46);
 }
 
+.iti__dropdown-content,
+.iti__country-list {
+    min-width: 280px;
+    max-width: min(360px, calc(100vw - 24px));
+    color: #18232d;
+    background: #fff;
+    border: 1px solid #cbd5dc;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+}
+
+.iti__search-input {
+    color: #18232d;
+    background: #fff;
+    border-color: #cbd5dc;
+}
+
+.iti__country,
+.iti__country-name,
+.iti__dial-code {
+    color: #18232d !important;
+}
+
+.iti__country:hover,
+.iti__country[aria-selected="true"] {
+    color: #0d3e68;
+    background: #e7f2fb;
+}
+
 .iti input[type="tel"] {
     padding-left: 88px;
 }
