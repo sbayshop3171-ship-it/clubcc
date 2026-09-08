@@ -62,6 +62,21 @@
     const previewName = document.getElementById('previewName');
     const virtualCardsTableBody = document.getElementById('virtualCardsTableBody');
     const refreshVirtualCards = document.getElementById('refreshVirtualCards');
+    const affiliateReferralLink = document.getElementById('affiliateReferralLink');
+    const copyAffiliateLink = document.getElementById('copyAffiliateLink');
+    const affiliateCopyFeedback = document.getElementById('affiliateCopyFeedback');
+    const affiliateReferralCount = document.getElementById('affiliateReferralCount');
+    const affiliateLifetimeEarnings = document.getElementById('affiliateLifetimeEarnings');
+    const affiliateAvailableBalance = document.getElementById('affiliateAvailableBalance');
+    const affiliateReferralsBody = document.getElementById('affiliateReferralsBody');
+    const affiliateStatus = document.getElementById('affiliateStatus');
+    const transferAffiliateBalance = document.getElementById('transferAffiliateBalance');
+    const withdrawAffiliateBalance = document.getElementById('withdrawAffiliateBalance');
+    const affiliateWithdrawModal = document.getElementById('affiliateWithdrawModal');
+    const closeAffiliateWithdraw = document.getElementById('closeAffiliateWithdraw');
+    const affiliateWithdrawForm = document.getElementById('affiliateWithdrawForm');
+    const affiliateWalletInput = document.getElementById('affiliateWalletInput');
+    const affiliateWithdrawStatus = document.getElementById('affiliateWithdrawStatus');
     const cardPurchaseStatus = document.getElementById('cardPurchaseStatus');
     const purchaseTableBody = document.getElementById('purchaseTableBody');
     const purchaseHistoryTitle = document.getElementById('purchaseHistoryTitle');
@@ -1062,7 +1077,7 @@
             return 'tickets';
         }
 
-        if (['cards', 'ssn', 'chicken', 'otp-bypass', 'cart', 'deposit', 'virtual-cards', 'purchases'].includes(requestedView)) {
+        if (['cards', 'ssn', 'chicken', 'otp-bypass', 'cart', 'deposit', 'virtual-cards', 'affiliate', 'purchases'].includes(requestedView)) {
             return requestedView;
         }
 
@@ -1070,7 +1085,7 @@
     }
 
     function showDashboardView(viewName) {
-        const activeView = ['cards', 'ssn', 'chicken', 'otp-bypass', 'tickets', 'cart', 'deposit', 'virtual-cards', 'purchases', 'purchases-pending', 'purchases-ssn', 'settings'].includes(viewName) ? viewName : 'news';
+        const activeView = ['cards', 'ssn', 'chicken', 'otp-bypass', 'tickets', 'cart', 'deposit', 'virtual-cards', 'affiliate', 'purchases', 'purchases-pending', 'purchases-ssn', 'settings'].includes(viewName) ? viewName : 'news';
         if (activeView === 'purchases-pending') {
             activePurchaseFilter = 'pending';
         } else if (activeView === 'purchases' || activeView === 'purchases-ssn') {
@@ -2484,6 +2499,37 @@
         }
     }
 
+    function renderAffiliate(data) {
+        if (affiliateReferralLink) {
+            const origin = window.location.origin;
+            affiliateReferralLink.value = `${origin}${data.referralLink}`;
+        }
+        if (affiliateReferralCount) affiliateReferralCount.textContent = String(data.totalReferrals || 0);
+        if (affiliateLifetimeEarnings) affiliateLifetimeEarnings.textContent = `$${Number(data.lifetimeEarnings || 0).toFixed(2)}`;
+        if (affiliateAvailableBalance) affiliateAvailableBalance.textContent = `$${Number(data.availableBalance || 0).toFixed(2)}`;
+        if (affiliateReferralsBody) {
+            affiliateReferralsBody.innerHTML = data.referrals?.length
+                ? data.referrals.map((referral) => `<tr><td>${escapeHtml(referral.username)}</td><td>${escapeHtml(formatAccountDate(referral.registeredAt, false))}</td><td>$${Number(referral.totalEarned || 0).toFixed(2)}</td></tr>`).join('')
+                : '<tr><td colspan="3" class="empty-history">You have no referrals yet.</td></tr>';
+        }
+    }
+
+    async function loadAffiliate() {
+        try {
+            const data = await apiGet('/dashboard/affiliate');
+            renderAffiliate(data);
+            if (affiliateStatus) affiliateStatus.textContent = '';
+        } catch (error) {
+            if (error.message !== 'Session expired' && affiliateStatus) affiliateStatus.textContent = error.message;
+        }
+    }
+
+    async function postAffiliateAction(payload) {
+        const data = await apiPost('/dashboard/affiliate', payload);
+        renderAffiliate(data);
+        return data;
+    }
+
     async function loadVirtualCards() {
         try {
             const data = await apiGet('/dashboard/virtual-cards');
@@ -2854,6 +2900,9 @@
     if (viewFromHash() === 'virtual-cards') {
         loadVirtualCards();
     }
+    if (viewFromHash() === 'affiliate') {
+        loadAffiliate();
+    }
     if (viewFromHash().startsWith('purchases')) {
         loadPurchases();
     }
@@ -2880,6 +2929,10 @@
 
         if (viewFromHash() === 'cart') {
             return loadCart();
+        }
+
+        if (viewFromHash() === 'affiliate') {
+            return loadAffiliate();
         }
 
         if (viewFromHash() === 'ssn') {
@@ -2932,6 +2985,9 @@
         }
         if (view === 'virtual-cards') {
             loadVirtualCards();
+        }
+        if (view === 'affiliate') {
+            loadAffiliate();
         }
         if (view.startsWith('purchases')) {
             loadPurchases();
@@ -3051,6 +3107,49 @@
     virtualCardName?.addEventListener('input', updateVirtualCardPreview);
     virtualCardForm?.addEventListener('submit', createVirtualCard);
     refreshVirtualCards?.addEventListener('click', loadVirtualCards);
+    copyAffiliateLink?.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(affiliateReferralLink.value);
+            affiliateCopyFeedback.textContent = 'Referral link copied';
+        } catch (error) {
+            affiliateReferralLink.select();
+            document.execCommand('copy');
+            affiliateCopyFeedback.textContent = 'Referral link copied';
+        }
+    });
+    transferAffiliateBalance?.addEventListener('click', async () => {
+        transferAffiliateBalance.disabled = true;
+        if (affiliateStatus) affiliateStatus.textContent = 'Transferring...';
+        try {
+            await postAffiliateAction({ action: 'transfer' });
+            if (affiliateStatus) affiliateStatus.textContent = 'Transferred to main wallet';
+        } catch (error) {
+            if (affiliateStatus) affiliateStatus.textContent = error.message;
+        } finally {
+            transferAffiliateBalance.disabled = false;
+        }
+    });
+    withdrawAffiliateBalance?.addEventListener('click', () => {
+        affiliateWithdrawModal.hidden = false;
+        affiliateWalletInput.focus();
+    });
+    closeAffiliateWithdraw?.addEventListener('click', () => {
+        affiliateWithdrawModal.hidden = true;
+    });
+    affiliateWithdrawModal?.addEventListener('click', (event) => {
+        if (event.target === affiliateWithdrawModal) affiliateWithdrawModal.hidden = true;
+    });
+    affiliateWithdrawForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        affiliateWithdrawStatus.textContent = 'Submitting...';
+        try {
+            await postAffiliateAction({ action: 'withdraw', wallet: affiliateWalletInput.value.trim() });
+            affiliateWithdrawStatus.textContent = 'Withdrawal request submitted';
+            affiliateWalletInput.value = '';
+        } catch (error) {
+            affiliateWithdrawStatus.textContent = error.message;
+        }
+    });
     refreshPurchases?.addEventListener('click', () => loadPurchases());
     purchaseFilterButtons.forEach((button) => {
         button.addEventListener('click', () => {

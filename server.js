@@ -44,6 +44,7 @@ const PURCHASES_PATH = path.join(DATA_DIR, 'purchases.json');
 const CARTS_PATH = path.join(DATA_DIR, 'carts.json');
 const SSNS_PATH = path.join(DATA_DIR, 'ssns.json');
 const SUPPORT_TICKETS_PATH = path.join(DATA_DIR, 'support-tickets.json');
+const AFFILIATE_PAYOUTS_PATH = path.join(DATA_DIR, 'affiliate-payouts.json');
 const STORAGE_DIR = path.join(ROOT, 'storage');
 const LOG_DIR = path.join(STORAGE_DIR, 'logs');
 const AUTH_AUDIT_LOG_PATH = path.join(LOG_DIR, 'auth-audit.log');
@@ -365,6 +366,69 @@ function writeJsonStore(filePath, data) {
     const tmpPath = `${filePath}.tmp`;
     fs.writeFileSync(tmpPath, `${JSON.stringify(data, null, 2)}\n`);
     fs.renameSync(tmpPath, filePath);
+}
+
+function generateReferralCode(username) {
+    return `${String(username).toLowerCase()}-${crypto.randomBytes(4).toString('hex')}`;
+}
+
+function ensureAffiliateProfile(user) {
+    if (!user.referralCode) {
+        user.referralCode = generateReferralCode(user.username);
+    }
+    user.affiliateBalance = sanitizePrice(user.affiliateBalance);
+    user.affiliateLifetimeEarnings = sanitizePrice(user.affiliateLifetimeEarnings);
+    return user;
+}
+
+function readAffiliatePayouts() {
+    const data = readJsonStore(AFFILIATE_PAYOUTS_PATH, { payouts: [], nextId: 1 });
+    return {
+        payouts: Array.isArray(data.payouts) ? data.payouts : [],
+        nextId: Number(data.nextId) || 1
+    };
+}
+
+function writeAffiliatePayouts(data) {
+    writeJsonStore(AFFILIATE_PAYOUTS_PATH, data);
+}
+
+function affiliateReferrals(db, user) {
+    return db.users.filter((candidate) => candidate.referredBy === user.referralCode);
+}
+
+function affiliateResponse(db, user) {
+    ensureAffiliateProfile(user);
+    const referrals = affiliateReferrals(db, user);
+    return {
+        referralCode: user.referralCode,
+        referralLink: `/register/?ref=${encodeURIComponent(user.referralCode)}`,
+        commissionRate: 10,
+        totalReferrals: referrals.length,
+        lifetimeEarnings: user.affiliateLifetimeEarnings,
+        availableBalance: user.affiliateBalance,
+        referrals: referrals.map((referral) => ({
+            username: referral.username,
+            registeredAt: referral.createdAt,
+            totalEarned: sanitizePrice(referral.affiliateEarnedForReferrer)
+        }))
+    };
+}
+
+function awardAffiliateCommission(db, buyer, purchase) {
+    ensureAffiliateProfile(buyer);
+    const referrer = db.users.find((candidate) => candidate.referralCode === buyer.referredBy);
+    const commission = Number((sanitizePrice(purchase.amount) * 0.10).toFixed(2));
+
+    if (!referrer || commission <= 0 || purchase.affiliateCommissionAwardedAt) {
+        return;
+    }
+
+    ensureAffiliateProfile(referrer);
+    referrer.affiliateBalance = Number((referrer.affiliateBalance + commission).toFixed(2));
+    referrer.affiliateLifetimeEarnings = Number((referrer.affiliateLifetimeEarnings + commission).toFixed(2));
+    buyer.affiliateEarnedForReferrer = Number(((buyer.affiliateEarnedForReferrer || 0) + commission).toFixed(2));
+    purchase.affiliateCommissionAwardedAt = new Date().toISOString();
 }
 
 function readSupportTickets() {
@@ -1838,6 +1902,7 @@ function isLoginUsernameCandidate(username) {
 }
 
 function publicUser(user) {
+    ensureAffiliateProfile(user);
     return {
         id: user.id,
         username: user.username,
@@ -1845,7 +1910,8 @@ function publicUser(user) {
         status: user.status || 'active',
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
-        lastLoginAt: user.lastLoginAt || null
+        lastLoginAt: user.lastLoginAt || null,
+        referralCode: user.referralCode
     };
 }
 
@@ -2349,6 +2415,8 @@ async function handleRegister(req, res) {
 
     const db = readDatabase();
     const usernameKey = username.toLowerCase();
+    const referralCode = sanitizeText(body.referralCode, '', 100);
+    const referrer = referralCode ? db.users.find((candidate) => candidate.referralCode === referralCode) : null;
 
     if (db.users.some((user) => user.usernameKey === usernameKey)) {
         sendAuthError(res, 409, 'Username already exists', 'Duplicate Username', 'username');
@@ -2369,7 +2437,11 @@ async function handleRegister(req, res) {
         reward_credit: 0.00,
         createdAt: now,
         updatedAt: now,
-        lastLoginAt: null
+        lastLoginAt: null,
+        referralCode: generateReferralCode(username),
+        referredBy: referrer ? referrer.referralCode : '',
+        affiliateBalance: 0,
+        affiliateLifetimeEarnings: 0
     };
 
     db.nextId += 1;
@@ -3158,9 +3230,11 @@ async function handleDashboardCheckout(req, res) {
 
     const db = readDatabase();
     const storedUser = db.users.find((candidate) => candidate.id === user.id);
+    const createdPurchases = purchases.purchases.slice(-selectedItems.length);
+    createdPurchases.forEach((purchase) => awardAffiliateCommission(db, storedUser, purchase));
     storedUser.balance = Number((userBalance(storedUser) - total).toFixed(2));
     storedUser.purchaseHistory = Array.isArray(storedUser.purchaseHistory) ? storedUser.purchaseHistory : [];
-    storedUser.purchaseHistory.push(...purchases.purchases.slice(-selectedItems.length).map((purchase) => purchase.id));
+    storedUser.purchaseHistory.push(...createdPurchases.map((purchase) => purchase.id));
     storedUser.updatedAt = now;
     writeDatabase(db);
 
@@ -3196,6 +3270,70 @@ function handleDashboardDeposit(req, res) {
         deposits: deposits.map(publicDeposit),
         walletBalance: userBalance(user)
     });
+}
+
+async function handleDashboardAffiliate(req, res) {
+    const session = getSessionFromRequest(req);
+
+    if (!session) {
+        sendError(res, 401, 'No active session');
+        return;
+    }
+
+    const db = readDatabase();
+    const user = db.users.find((candidate) => candidate.id === session.user.id);
+    ensureAffiliateProfile(user);
+
+    if (req.method === 'GET') {
+        writeDatabase(db);
+        jsonResponse(res, 200, { ok: true, ...affiliateResponse(db, user), walletBalance: userBalance(user) });
+        return;
+    }
+
+    const body = await parseBody(req);
+    const action = body.action || 'transfer';
+
+    if (action === 'transfer') {
+        if (user.affiliateBalance <= 0) {
+            sendError(res, 400, 'No affiliate balance is available to transfer');
+            return;
+        }
+        user.balance = Number((userBalance(user) + user.affiliateBalance).toFixed(2));
+        user.affiliateBalance = 0;
+        writeDatabase(db);
+        jsonResponse(res, 200, { ok: true, message: 'Affiliate balance transferred', ...affiliateResponse(db, user), walletBalance: userBalance(user) });
+        return;
+    }
+
+    if (action === 'withdraw') {
+        const wallet = sanitizeText(body.wallet, '', 180);
+        if (user.affiliateBalance < 10) {
+            sendError(res, 400, 'Minimum crypto withdrawal is $10.00');
+            return;
+        }
+        if (!wallet) {
+            sendError(res, 400, 'Crypto wallet address is required');
+            return;
+        }
+        const payouts = readAffiliatePayouts();
+        const payout = {
+            id: payouts.nextId++,
+            userId: user.id,
+            username: user.username,
+            amount: user.affiliateBalance,
+            wallet,
+            status: 'Pending',
+            createdAt: new Date().toISOString()
+        };
+        payouts.payouts.push(payout);
+        user.affiliateBalance = 0;
+        writeAffiliatePayouts(payouts);
+        writeDatabase(db);
+        jsonResponse(res, 201, { ok: true, message: 'Crypto withdrawal request submitted', ...affiliateResponse(db, user), walletBalance: userBalance(user) });
+        return;
+    }
+
+    sendError(res, 400, 'Unknown affiliate action');
 }
 
 async function handleDashboardVirtualCards(req, res) {
@@ -3379,6 +3517,7 @@ async function handleDashboardPurchases(req, res, url) {
     const storedUser = db.users.find((candidate) => candidate.id === user.id);
 
     if (storedUser) {
+        awardAffiliateCommission(db, storedUser, purchase);
         storedUser.balance = Number((userBalance(storedUser) - amount).toFixed(2));
         storedUser.purchaseHistory = Array.isArray(storedUser.purchaseHistory) ? storedUser.purchaseHistory : [];
         storedUser.purchaseHistory.push(purchase.id);
@@ -3451,6 +3590,7 @@ async function handleDashboardSsnPurchase(req, res) {
 
     const db = readDatabase();
     const storedUser = db.users.find((candidate) => candidate.id === user.id);
+    awardAffiliateCommission(db, storedUser, purchase);
     storedUser.balance = Number((userBalance(storedUser) - amount).toFixed(2));
     storedUser.purchaseHistory = Array.isArray(storedUser.purchaseHistory) ? storedUser.purchaseHistory : [];
     storedUser.purchaseHistory.push(purchase.id);
@@ -3865,6 +4005,11 @@ async function handleRequest(req, res) {
 
         if (req.method === 'GET' && url.pathname === '/api/dashboard/deposit') {
             handleDashboardDeposit(req, res);
+            return;
+        }
+
+        if ((req.method === 'GET' || req.method === 'POST') && url.pathname === '/api/dashboard/affiliate') {
+            await handleDashboardAffiliate(req, res);
             return;
         }
 

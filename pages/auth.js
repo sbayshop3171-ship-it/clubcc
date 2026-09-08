@@ -16,6 +16,7 @@
         view: getInitialView(),
         captchaToken: '',
         prefillUsername: '',
+        referralCode: new URLSearchParams(window.location.search).get('ref') || '',
         submitting: false
     };
 
@@ -551,7 +552,8 @@ ${confirmPasswordField}
             username: values.username,
             password: values.password,
             captcha: values.captcha,
-            captchaToken: values.captchaToken
+            captchaToken: values.captchaToken,
+            referralCode: state.referralCode
         };
 
         setSubmitting(true);

@@ -67,7 +67,7 @@
                     <iconify-icon icon="mdi:phone-off-outline" width="18" height="18"></iconify-icon>
                     Call bypass
                 </a>
-                <a class="nav-item" href="#">
+                <a class="nav-item" href="#affiliate" data-view-link="affiliate">
                     <iconify-icon icon="mdi:account-cash-outline" width="18" height="18"></iconify-icon>
                     Affiliate
                     <span class="nav-badge">New</span>
@@ -189,6 +189,49 @@
                         <a href="#faq">FAQ</a>
                         <a href="#support">Support</a>
                     </footer>
+                </section>
+
+                <section class="dashboard-view" id="affiliateView" data-dashboard-view="affiliate" hidden>
+                    <h1>Affiliate Program</h1>
+
+                    <section class="affiliate-overview-grid">
+                        <article class="affiliate-info-panel glass-card dashboard-module">
+                            <h2>How It Works</h2>
+                            <p>Share your unique link to earn a <strong>10% commission</strong> on every purchase made by your referrals, for life.</p>
+                            <ol class="affiliate-steps">
+                                <li>Share your referral link with friends.</li>
+                                <li>A new user signs up using your link.</li>
+                                <li>You earn 10% of every order they place.</li>
+                                <li>Your earnings appear in your Available Balance.</li>
+                                <li>Transfer it to your main wallet instantly or withdraw it to an external crypto wallet (min $10).</li>
+                            </ol>
+                            <div class="affiliate-commission-box"><strong>10% lifetime commission</strong><span>Earn from every eligible order placed by your referrals.</span></div>
+                        </article>
+
+                        <article class="affiliate-link-panel glass-card dashboard-module">
+                            <div class="section-heading"><h2>Your Referral Link</h2><span class="affiliate-status" id="affiliateStatus" role="status" aria-live="polite"></span></div>
+                            <div class="affiliate-copy-field"><input id="affiliateReferralLink" type="text" readonly aria-label="Your referral link"><button class="admin-button admin-button-primary" id="copyAffiliateLink" type="button">Copy Link</button></div>
+                            <p class="affiliate-copy-feedback" id="affiliateCopyFeedback" role="status" aria-live="polite"></p>
+                        </article>
+                    </section>
+
+                    <section class="affiliate-stats-grid" aria-label="Affiliate statistics">
+                        <article class="affiliate-stat-card glass-card dashboard-module"><span>Total Referrals</span><strong id="affiliateReferralCount">0</strong></article>
+                        <article class="affiliate-stat-card glass-card dashboard-module"><span>Total Lifetime Earnings</span><strong id="affiliateLifetimeEarnings">$0.00</strong></article>
+                        <article class="affiliate-payout-card glass-card dashboard-module"><div><span>Available for Payout</span><strong id="affiliateAvailableBalance">$0.00</strong></div><div class="affiliate-payout-actions"><button class="admin-button admin-button-primary" id="transferAffiliateBalance" type="button">Transfer to Main</button><button class="admin-button" id="withdrawAffiliateBalance" type="button">Withdraw Crypto</button></div></article>
+                    </section>
+
+                    <section class="market-results glass-card dashboard-module affiliate-referrals-panel" aria-labelledby="affiliateReferralsTitle">
+                        <div class="results-toolbar"><h2 id="affiliateReferralsTitle">Your Referrals</h2></div>
+                        <div class="table-scroll"><table class="affiliate-referrals-table"><thead><tr><th>USERNAME</th><th>REGISTRATION DATE</th><th>TOTAL EARNED FROM USER</th></tr></thead><tbody id="affiliateReferralsBody"><tr><td colspan="3" class="empty-history">You have no referrals yet.</td></tr></tbody></table></div>
+                    </section>
+
+                    <div class="modal-backdrop" id="affiliateWithdrawModal" hidden>
+                        <section class="modal-card affiliate-withdraw-modal" role="dialog" aria-modal="true" aria-labelledby="affiliateWithdrawTitle">
+                            <div class="section-heading"><h2 id="affiliateWithdrawTitle">Withdraw Crypto</h2><button class="icon-button" id="closeAffiliateWithdraw" type="button" aria-label="Close withdrawal dialog">&times;</button></div>
+                            <form id="affiliateWithdrawForm"><label>External crypto wallet address<input id="affiliateWalletInput" type="text" autocomplete="off" required></label><p class="affiliate-withdraw-note">Minimum withdrawal: $10.00</p><p class="affiliate-status" id="affiliateWithdrawStatus" role="status" aria-live="polite"></p><button class="admin-button admin-button-primary" type="submit">Submit Withdrawal Request</button></form>
+                        </section>
+                    </div>
                 </section>
 
                 <section class="dashboard-view" id="cardsView" data-dashboard-view="cards" hidden>
