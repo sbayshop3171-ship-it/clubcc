@@ -49,6 +49,7 @@
     const virtualCardPreview = document.getElementById('virtualCardPreview');
     const virtualCardType = document.getElementById('virtualCardType');
     const virtualCardAmount = document.getElementById('virtualCardAmount');
+    const virtualCardPricingBadge = document.getElementById('virtualCardPricingBadge');
     const virtualCardName = document.getElementById('virtualCardName');
     const virtualCardPreviewNote = document.getElementById('virtualCardPreviewNote');
     const virtualCardForm = document.getElementById('virtualCardForm');
@@ -191,6 +192,7 @@
     let activePurchaseFilter = 'completed';
     let toolAlertSettings = {};
     let virtualCardRecords = [];
+    let virtualCardSettings = null;
     let virtualPreviewRevealed = false;
     let walletBalanceValue = 0;
     let checkerPriceValue = 0.30;
@@ -2485,6 +2487,7 @@
     async function loadVirtualCards() {
         try {
             const data = await apiGet('/dashboard/virtual-cards');
+            applyVirtualCardSettings(data.settings);
             virtualCardRecords = Array.isArray(data.cards) ? data.cards : [];
             renderVirtualCards(virtualCardRecords);
             if (virtualCardBalance) virtualCardBalance.textContent = `$${Number(data.walletBalance || 0).toFixed(2)}`;
@@ -2493,14 +2496,43 @@
         }
     }
 
+    function applyVirtualCardSettings(settings) {
+        if (!settings || !virtualCardAmount) {
+            return;
+        }
+
+        virtualCardSettings = settings;
+        virtualCardAmount.min = String(settings.minimumAmount);
+        virtualCardAmount.max = String(settings.maximumAmount);
+        virtualCardAmount.placeholder = Number(settings.defaultAmount).toFixed(2);
+        if (!virtualCardAmount.value) {
+            virtualCardAmount.value = Number(settings.defaultAmount).toFixed(2);
+        }
+
+        if (virtualCardPricingBadge) {
+            virtualCardPricingBadge.hidden = settings.badgeEnabled === false;
+            virtualCardPricingBadge.textContent = settings.badgeText || `Allowed: $${Number(settings.minimumAmount).toFixed(2)} - $${Number(settings.maximumAmount).toFixed(2)}`;
+        }
+    }
+
     async function createVirtualCard(event) {
         event.preventDefault();
+        const amount = Number(virtualCardAmount.value);
+        const minimumAmount = Number(virtualCardSettings?.minimumAmount ?? virtualCardAmount.min ?? 0.02);
+        const maximumAmount = Number(virtualCardSettings?.maximumAmount ?? virtualCardAmount.max ?? 1000);
+
+        if (!Number.isFinite(amount) || amount < minimumAmount || amount > maximumAmount) {
+            virtualCardStatus.textContent = `Amount must be between $${minimumAmount.toFixed(2)} and $${maximumAmount.toFixed(2)}.`;
+            virtualCardAmount.focus();
+            return;
+        }
+
         virtualCardStatus.textContent = 'Creating...';
 
         try {
             const data = await apiPost('/dashboard/virtual-cards', {
                 type: virtualCardType.value,
-                amount: virtualCardAmount.value,
+                amount: amount.toFixed(2),
                 name: virtualCardName.value
             });
             virtualCardStatus.textContent = 'Request submitted. Awaiting admin approval.';

@@ -37,6 +37,7 @@ const CHECKER_SETTINGS_PATH = path.join(DATA_DIR, 'checker-settings.json');
 const SUB_SETTINGS_PATH = path.join(DATA_DIR, 'sub-settings.json');
 const CARDS_PATH = path.join(DATA_DIR, 'cards.json');
 const DEPOSIT_SETTINGS_PATH = path.join(DATA_DIR, 'deposit-settings.json');
+const VIRTUAL_CARD_SETTINGS_PATH = path.join(DATA_DIR, 'virtual-card-settings.json');
 const DEPOSITS_PATH = path.join(DATA_DIR, 'deposits.json');
 const VIRTUAL_CARDS_PATH = path.join(DATA_DIR, 'virtual-cards.json');
 const PURCHASES_PATH = path.join(DATA_DIR, 'purchases.json');
@@ -48,6 +49,13 @@ const LOG_DIR = path.join(STORAGE_DIR, 'logs');
 const AUTH_AUDIT_LOG_PATH = path.join(LOG_DIR, 'auth-audit.log');
 const DEFAULT_CHECKER_SETTINGS = { price: 0.30, title: 'CHECK' };
 const DEFAULT_SUB_SETTINGS = { price: 150, title: 'Subscription' };
+const DEFAULT_VIRTUAL_CARD_SETTINGS = {
+    minimumAmount: 0.02,
+    maximumAmount: 1000,
+    defaultAmount: 5,
+    badgeEnabled: true,
+    badgeText: 'Minimum $0.02 | Maximum $1,000.00'
+};
 const DEFAULT_TOOL_ALERT_SETTINGS = {
     checker: { enabled: true, delaySeconds: 10, icon: 'info', customIconUrl: '', title: 'COMING SOON', description: 'We are working on this feature. Please check again later.', buttonText: 'OK' },
     'otp-bypass': { enabled: true, delaySeconds: 10, icon: 'info', customIconUrl: '', title: 'COMING SOON', description: 'We are working on this feature. Please check again later.', buttonText: 'OK' },
@@ -474,6 +482,40 @@ function readVirtualCards() {
 
 function writeVirtualCards(data) {
     writeJsonStore(VIRTUAL_CARDS_PATH, data);
+}
+
+function sanitizeVirtualCardSettings(settings = {}) {
+    const clampAmount = (value, fallback, minimum, maximum) => {
+        const number = Number(value);
+        return Number((Number.isFinite(number) ? Math.min(maximum, Math.max(minimum, number)) : fallback).toFixed(2));
+    };
+    const minimumAmount = clampAmount(settings.minimumAmount, DEFAULT_VIRTUAL_CARD_SETTINGS.minimumAmount, 0.01, 100000);
+    const maximumAmount = clampAmount(settings.maximumAmount, DEFAULT_VIRTUAL_CARD_SETTINGS.maximumAmount, minimumAmount, 100000);
+    const defaultAmount = clampAmount(settings.defaultAmount, DEFAULT_VIRTUAL_CARD_SETTINGS.defaultAmount, minimumAmount, maximumAmount);
+
+    return {
+        minimumAmount,
+        maximumAmount,
+        defaultAmount,
+        badgeEnabled: settings.badgeEnabled !== false,
+        badgeText: sanitizeText(settings.badgeText, DEFAULT_VIRTUAL_CARD_SETTINGS.badgeText, 160)
+    };
+}
+
+function readVirtualCardSettings() {
+    const settings = sanitizeVirtualCardSettings(readJsonStore(VIRTUAL_CARD_SETTINGS_PATH, DEFAULT_VIRTUAL_CARD_SETTINGS));
+
+    if (!fs.existsSync(VIRTUAL_CARD_SETTINGS_PATH)) {
+        writeJsonStore(VIRTUAL_CARD_SETTINGS_PATH, settings);
+    }
+
+    return settings;
+}
+
+function writeVirtualCardSettings(settings) {
+    const sanitizedSettings = sanitizeVirtualCardSettings(settings);
+    writeJsonStore(VIRTUAL_CARD_SETTINGS_PATH, sanitizedSettings);
+    return sanitizedSettings;
 }
 
 function readPurchases() {
@@ -3175,12 +3217,14 @@ async function handleDashboardVirtualCards(req, res) {
         jsonResponse(res, 200, {
             ok: true,
             cards: cards.map(publicVirtualCard),
+            settings: readVirtualCardSettings(),
             walletBalance: userBalance(user)
         });
         return;
     }
 
     const body = await parseBody(req);
+    const settings = readVirtualCardSettings();
     const type = sanitizeChoice(body.type, new Set(['VISA', 'MASTERCARD']), 'VISA');
     const name = sanitizeText(body.name, '', 60);
     const amount = Number(Number(body.amount).toFixed(2));
@@ -3190,8 +3234,8 @@ async function handleDashboardVirtualCards(req, res) {
         return;
     }
 
-    if (!Number.isFinite(amount) || amount < 0.02) {
-        sendError(res, 400, 'Amount must be at least $0.02');
+    if (!Number.isFinite(amount) || amount < settings.minimumAmount || amount > settings.maximumAmount) {
+        sendError(res, 400, `Amount must be between $${settings.minimumAmount.toFixed(2)} and $${settings.maximumAmount.toFixed(2)}`);
         return;
     }
 
@@ -3482,6 +3526,20 @@ function handleAdminDepositSettings(req, res) {
         }
         jsonResponse(res, 200, { ok: true, settings: writeDepositSettings(body) });
     }).catch(() => sendError(res, 400, 'Invalid settings payload'));
+}
+
+function handleAdminVirtualCardSettings(req, res) {
+    if (req.method === 'GET') {
+        jsonResponse(res, 200, { ok: true, settings: readVirtualCardSettings() });
+        return;
+    }
+
+    parseBody(req).then((body) => {
+        if (!requireMasterAdminKey(body, res)) {
+            return;
+        }
+        jsonResponse(res, 200, { ok: true, settings: writeVirtualCardSettings(body) });
+    }).catch(() => sendError(res, 400, 'Invalid virtual card settings payload'));
 }
 
 async function handleAdminPaymentUnlock(req, res) {
@@ -3855,6 +3913,14 @@ async function handleRequest(req, res) {
                 return;
             }
             handleAdminDepositSettings(req, res);
+            return;
+        }
+
+        if ((req.method === 'GET' || req.method === 'PUT') && url.pathname === '/api/admin/virtual-card-settings') {
+            if (!requireAdminSession(req, res)) {
+                return;
+            }
+            handleAdminVirtualCardSettings(req, res);
             return;
         }
 

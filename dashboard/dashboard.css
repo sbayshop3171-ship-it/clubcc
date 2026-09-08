@@ -1390,6 +1390,17 @@ body.cards-view-active .cards-table tr:hover td {
     color: var(--green);
 }
 
+.virtual-card-pricing-badge {
+    margin: -4px 0 0;
+    padding: 8px 10px;
+    color: #cfe7f4;
+    font-size: 12px;
+    font-weight: 800;
+    border: 1px solid rgba(109, 207, 235, 0.28);
+    border-radius: 4px;
+    background: rgba(14, 42, 58, 0.58);
+}
+
 .virtual-card-status {
     min-height: 18px;
     margin: 0;

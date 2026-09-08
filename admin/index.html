@@ -63,6 +63,23 @@
                 </form>
             </section>
 
+            <section class="ticker-admin-card glass-card dashboard-module" aria-labelledby="virtualCardSettingsTitle">
+                <div class="section-heading">
+                    <h2 id="virtualCardSettingsTitle">Virtual Card Pricing &amp; Limits</h2>
+                    <span class="settings-status" id="virtualCardSettingsStatus">Loading</span>
+                </div>
+                <form class="settings-form" id="virtualCardSettingsForm">
+                    <div class="settings-grid settings-grid-wide">
+                        <label>Minimum amount ($)<input id="virtualCardMinimumInput" type="number" min="0.01" max="100000" step="0.01" required></label>
+                        <label>Maximum amount ($)<input id="virtualCardMaximumInput" type="number" min="0.01" max="100000" step="0.01" required></label>
+                        <label>Default / recommended amount ($)<input id="virtualCardDefaultInput" type="number" min="0.01" max="100000" step="0.01" required></label>
+                        <label>Pricing badge text<input id="virtualCardBadgeTextInput" type="text" maxlength="160" required></label>
+                    </div>
+                    <label class="toggle-field"><input id="virtualCardBadgeEnabledInput" type="checkbox"><span>Show pricing badge on the Virtual Cards form</span></label>
+                    <div class="settings-actions"><button class="admin-button admin-button-primary" type="submit">Save virtual card settings</button></div>
+                </form>
+            </section>
+
             <section class="ticker-admin-card glass-card dashboard-module" aria-labelledby="twoFactorSettingsTitle">
                 <div class="section-heading">
                     <h2 id="twoFactorSettingsTitle">Google Authenticator 2FA</h2>

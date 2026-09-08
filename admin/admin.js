@@ -26,6 +26,13 @@
     const subPriceInput = document.getElementById('subPriceInput');
     const subTitleInput = document.getElementById('subTitleInput');
     const subPriceSettingsStatus = document.getElementById('subPriceSettingsStatus');
+    const virtualCardSettingsForm = document.getElementById('virtualCardSettingsForm');
+    const virtualCardMinimumInput = document.getElementById('virtualCardMinimumInput');
+    const virtualCardMaximumInput = document.getElementById('virtualCardMaximumInput');
+    const virtualCardDefaultInput = document.getElementById('virtualCardDefaultInput');
+    const virtualCardBadgeTextInput = document.getElementById('virtualCardBadgeTextInput');
+    const virtualCardBadgeEnabledInput = document.getElementById('virtualCardBadgeEnabledInput');
+    const virtualCardSettingsStatus = document.getElementById('virtualCardSettingsStatus');
     const onlinePreview = document.getElementById('onlinePreview');
     const previewFeed = document.getElementById('previewFeed');
     const paymentSettingsForm = document.getElementById('paymentSettingsForm');
@@ -418,6 +425,53 @@
         }
     }
 
+    function setVirtualCardSettingsStatus(message, type = '') {
+        virtualCardSettingsStatus.textContent = message;
+        virtualCardSettingsStatus.classList.toggle('is-success', type === 'success');
+        virtualCardSettingsStatus.classList.toggle('is-error', type === 'error');
+    }
+
+    function populateVirtualCardSettings(settings) {
+        virtualCardMinimumInput.value = Number(settings.minimumAmount).toFixed(2);
+        virtualCardMaximumInput.value = Number(settings.maximumAmount).toFixed(2);
+        virtualCardDefaultInput.value = Number(settings.defaultAmount).toFixed(2);
+        virtualCardBadgeTextInput.value = settings.badgeText || '';
+        virtualCardBadgeEnabledInput.checked = settings.badgeEnabled !== false;
+    }
+
+    async function loadVirtualCardSettings() {
+        setVirtualCardSettingsStatus('Loading');
+        try {
+            const data = await apiRequest('/admin/virtual-card-settings');
+            populateVirtualCardSettings(data.settings);
+            setVirtualCardSettingsStatus('Synced', 'success');
+        } catch (error) {
+            if (error.message !== 'Session expired') setVirtualCardSettingsStatus(error.message || 'Load failed', 'error');
+        }
+    }
+
+    async function saveVirtualCardSettings(event) {
+        event.preventDefault();
+        setVirtualCardSettingsStatus('Saving');
+        try {
+            const data = await apiRequest('/admin/virtual-card-settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({
+                    minimumAmount: Number(virtualCardMinimumInput.value),
+                    maximumAmount: Number(virtualCardMaximumInput.value),
+                    defaultAmount: Number(virtualCardDefaultInput.value),
+                    badgeText: virtualCardBadgeTextInput.value,
+                    badgeEnabled: virtualCardBadgeEnabledInput.checked
+                })
+            });
+            populateVirtualCardSettings(data.settings);
+            setVirtualCardSettingsStatus('Saved', 'success');
+        } catch (error) {
+            if (error.message !== 'Session expired') setVirtualCardSettingsStatus(error.message || 'Save failed', 'error');
+        }
+    }
+
     async function saveSubSettings(event) {
         event.preventDefault();
         subPriceSettingsStatus.textContent = 'Saving';
@@ -600,6 +654,7 @@
     tickerSettingsForm.addEventListener('submit', saveSettings);
     checkerSettingsForm.addEventListener('submit', saveCheckerSettings);
     subPriceSettingsForm.addEventListener('submit', saveSubSettings);
+    virtualCardSettingsForm.addEventListener('submit', saveVirtualCardSettings);
     resetTickerSettings.addEventListener('click', loadSettings);
     paymentSettingsForm.addEventListener('submit', savePaymentSettings);
     twoFactorSettingsForm.addEventListener('submit', saveTwoFactorSettings);
@@ -660,6 +715,7 @@
     loadSettings();
     loadCheckerSettings();
     loadSubSettings();
+    loadVirtualCardSettings();
     loadPaymentSettings();
     loadTwoFactorSettings();
     loadAnnouncementSettings();
