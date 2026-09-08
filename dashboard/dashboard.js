@@ -1393,6 +1393,30 @@
         }
     }
 
+    function bindPriceSliderTouch(slider) {
+        if (!slider) {
+            return;
+        }
+
+        slider.addEventListener('touchstart', () => {
+            slider.dataset.touchDragging = 'true';
+        }, { passive: true });
+        slider.addEventListener('touchmove', (event) => {
+            if (slider.dataset.touchDragging === 'true') {
+                event.preventDefault();
+            }
+        }, { passive: false });
+        slider.addEventListener('touchend', () => {
+            delete slider.dataset.touchDragging;
+        }, { passive: true });
+        slider.addEventListener('touchcancel', () => {
+            delete slider.dataset.touchDragging;
+        }, { passive: true });
+    }
+
+    bindPriceSliderTouch(priceFromSlider);
+    bindPriceSliderTouch(priceToSlider);
+
     function scheduleCardLoad(delay = 300) {
         currentCardPage = 1;
         window.clearTimeout(cardFilterTimer);
