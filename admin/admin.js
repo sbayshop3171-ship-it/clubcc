@@ -33,6 +33,15 @@
     const virtualCardBadgeTextInput = document.getElementById('virtualCardBadgeTextInput');
     const virtualCardBadgeEnabledInput = document.getElementById('virtualCardBadgeEnabledInput');
     const virtualCardSettingsStatus = document.getElementById('virtualCardSettingsStatus');
+    const affiliateSettingsForm = document.getElementById('affiliateSettingsForm');
+    const affiliateCommissionRateInput = document.getElementById('affiliateCommissionRateInput');
+    const affiliateMinimumWithdrawalInput = document.getElementById('affiliateMinimumWithdrawalInput');
+    const affiliateTitleInput = document.getElementById('affiliateTitleInput');
+    const affiliateSubtitleInput = document.getElementById('affiliateSubtitleInput');
+    const affiliateStepInputs = [1, 2, 3, 4, 5].map((step) => document.getElementById(`affiliateStep${step}Input`));
+    const affiliateHighlightTitleInput = document.getElementById('affiliateHighlightTitleInput');
+    const affiliateHighlightNoteInput = document.getElementById('affiliateHighlightNoteInput');
+    const affiliateSettingsStatus = document.getElementById('affiliateSettingsStatus');
     const onlinePreview = document.getElementById('onlinePreview');
     const previewFeed = document.getElementById('previewFeed');
     const paymentSettingsForm = document.getElementById('paymentSettingsForm');
@@ -472,6 +481,57 @@
         }
     }
 
+    function setAffiliateSettingsStatus(message, type = '') {
+        affiliateSettingsStatus.textContent = message;
+        affiliateSettingsStatus.classList.toggle('is-success', type === 'success');
+        affiliateSettingsStatus.classList.toggle('is-error', type === 'error');
+    }
+
+    function populateAffiliateSettings(settings) {
+        affiliateCommissionRateInput.value = Number(settings.commissionRate).toFixed(2);
+        affiliateMinimumWithdrawalInput.value = Number(settings.minimumWithdrawal).toFixed(2);
+        affiliateTitleInput.value = settings.title || '';
+        affiliateSubtitleInput.value = settings.subtitle || '';
+        affiliateStepInputs.forEach((input, index) => { input.value = settings.steps?.[index] || ''; });
+        affiliateHighlightTitleInput.value = settings.highlightTitle || '';
+        affiliateHighlightNoteInput.value = settings.highlightNote || '';
+    }
+
+    async function loadAffiliateSettings() {
+        setAffiliateSettingsStatus('Loading');
+        try {
+            const data = await apiRequest('/admin/affiliate-settings');
+            populateAffiliateSettings(data.settings);
+            setAffiliateSettingsStatus('Synced', 'success');
+        } catch (error) {
+            if (error.message !== 'Session expired') setAffiliateSettingsStatus(error.message || 'Load failed', 'error');
+        }
+    }
+
+    async function saveAffiliateSettings(event) {
+        event.preventDefault();
+        setAffiliateSettingsStatus('Saving');
+        try {
+            const data = await apiRequest('/admin/affiliate-settings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({
+                    commissionRate: Number(affiliateCommissionRateInput.value),
+                    minimumWithdrawal: Number(affiliateMinimumWithdrawalInput.value),
+                    title: affiliateTitleInput.value,
+                    subtitle: affiliateSubtitleInput.value,
+                    steps: affiliateStepInputs.map((input) => input.value),
+                    highlightTitle: affiliateHighlightTitleInput.value,
+                    highlightNote: affiliateHighlightNoteInput.value
+                })
+            });
+            populateAffiliateSettings(data.settings);
+            setAffiliateSettingsStatus('Saved', 'success');
+        } catch (error) {
+            if (error.message !== 'Session expired') setAffiliateSettingsStatus(error.message || 'Save failed', 'error');
+        }
+    }
+
     async function saveSubSettings(event) {
         event.preventDefault();
         subPriceSettingsStatus.textContent = 'Saving';
@@ -655,6 +715,7 @@
     checkerSettingsForm.addEventListener('submit', saveCheckerSettings);
     subPriceSettingsForm.addEventListener('submit', saveSubSettings);
     virtualCardSettingsForm.addEventListener('submit', saveVirtualCardSettings);
+    affiliateSettingsForm.addEventListener('submit', saveAffiliateSettings);
     resetTickerSettings.addEventListener('click', loadSettings);
     paymentSettingsForm.addEventListener('submit', savePaymentSettings);
     twoFactorSettingsForm.addEventListener('submit', saveTwoFactorSettings);
@@ -716,6 +777,7 @@
     loadCheckerSettings();
     loadSubSettings();
     loadVirtualCardSettings();
+    loadAffiliateSettings();
     loadPaymentSettings();
     loadTwoFactorSettings();
     loadAnnouncementSettings();

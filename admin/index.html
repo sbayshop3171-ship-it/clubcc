@@ -23,6 +23,7 @@
             <nav class="admin-header-actions" aria-label="Admin navigation">
                 <a class="admin-button" href="/dashboard/">Dashboard</a>
                 <a class="admin-button" href="#checker">Checker</a>
+                <a class="admin-button" href="#affiliateSettingsTitle">Affiliate</a>
                 <a class="admin-button" href="/admin/payment">Payment</a>
                 <button class="admin-button" id="logoutButton" type="button">Logout</button>
             </nav>
@@ -77,6 +78,31 @@
                     </div>
                     <label class="toggle-field"><input id="virtualCardBadgeEnabledInput" type="checkbox"><span>Show pricing badge on the Virtual Cards form</span></label>
                     <div class="settings-actions"><button class="admin-button admin-button-primary" type="submit">Save virtual card settings</button></div>
+                </form>
+            </section>
+
+            <section class="ticker-admin-card glass-card dashboard-module" aria-labelledby="affiliateSettingsTitle">
+                <div class="section-heading">
+                    <h2 id="affiliateSettingsTitle">Affiliate Settings</h2>
+                    <span class="settings-status" id="affiliateSettingsStatus">Loading</span>
+                </div>
+                <form class="settings-form" id="affiliateSettingsForm">
+                    <div class="settings-grid settings-grid-compact">
+                        <label>Commission rate (%)<input id="affiliateCommissionRateInput" type="number" min="0" max="100" step="0.01" required></label>
+                        <label>Minimum withdrawal ($)<input id="affiliateMinimumWithdrawalInput" type="number" min="0" max="100000" step="0.01" required></label>
+                        <label>Page title<input id="affiliateTitleInput" type="text" maxlength="120" required></label>
+                        <label>Page subtitle<input id="affiliateSubtitleInput" type="text" maxlength="320" required></label>
+                    </div>
+                    <div class="settings-grid settings-grid-wide">
+                        <label>Step 1<textarea id="affiliateStep1Input" rows="2" maxlength="240" required></textarea></label>
+                        <label>Step 2<textarea id="affiliateStep2Input" rows="2" maxlength="240" required></textarea></label>
+                        <label>Step 3<textarea id="affiliateStep3Input" rows="2" maxlength="240" required></textarea></label>
+                        <label>Step 4<textarea id="affiliateStep4Input" rows="2" maxlength="240" required></textarea></label>
+                        <label>Step 5<textarea id="affiliateStep5Input" rows="2" maxlength="240" required></textarea></label>
+                        <label>Commission highlight title<textarea id="affiliateHighlightTitleInput" rows="2" maxlength="120" required></textarea></label>
+                        <label class="settings-form-wide">Commission highlight note<textarea id="affiliateHighlightNoteInput" rows="3" maxlength="240" required></textarea></label>
+                    </div>
+                    <div class="settings-actions"><button class="admin-button admin-button-primary" type="submit">Save Affiliate Settings</button></div>
                 </form>
             </section>
 

@@ -70,6 +70,12 @@
     const affiliateAvailableBalance = document.getElementById('affiliateAvailableBalance');
     const affiliateReferralsBody = document.getElementById('affiliateReferralsBody');
     const affiliateStatus = document.getElementById('affiliateStatus');
+    const affiliatePageTitle = document.getElementById('affiliatePageTitle');
+    const affiliatePageSubtitle = document.getElementById('affiliatePageSubtitle');
+    const affiliateSteps = document.getElementById('affiliateSteps');
+    const affiliateHighlightTitle = document.getElementById('affiliateHighlightTitle');
+    const affiliateHighlightNote = document.getElementById('affiliateHighlightNote');
+    const affiliateWithdrawNote = document.getElementById('affiliateWithdrawNote');
     const transferAffiliateBalance = document.getElementById('transferAffiliateBalance');
     const withdrawAffiliateBalance = document.getElementById('withdrawAffiliateBalance');
     const affiliateWithdrawModal = document.getElementById('affiliateWithdrawModal');
@@ -2500,6 +2506,17 @@
     }
 
     function renderAffiliate(data) {
+        const settings = data.settings || {};
+        const renderCopy = (value) => String(value || '')
+            .replaceAll('{{commissionRate}}', Number(settings.commissionRate || data.commissionRate || 0).toFixed(2).replace(/\.00$/, ''))
+            .replaceAll('{{minimumWithdrawal}}', Number(settings.minimumWithdrawal || 0).toFixed(2));
+
+        if (affiliatePageTitle) affiliatePageTitle.textContent = settings.title || 'Affiliate Program';
+        if (affiliatePageSubtitle) affiliatePageSubtitle.textContent = renderCopy(settings.subtitle || '');
+        if (affiliateSteps) affiliateSteps.innerHTML = (settings.steps || []).map((step) => `<li>${escapeHtml(renderCopy(step))}</li>`).join('');
+        if (affiliateHighlightTitle) affiliateHighlightTitle.textContent = renderCopy(settings.highlightTitle || '');
+        if (affiliateHighlightNote) affiliateHighlightNote.textContent = renderCopy(settings.highlightNote || '');
+        if (affiliateWithdrawNote) affiliateWithdrawNote.textContent = `Minimum withdrawal: $${Number(settings.minimumWithdrawal || 0).toFixed(2)}`;
         if (affiliateReferralLink) {
             const origin = window.location.origin;
             affiliateReferralLink.value = `${origin}${data.referralLink}`;

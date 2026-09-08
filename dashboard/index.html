@@ -192,20 +192,14 @@
                 </section>
 
                 <section class="dashboard-view" id="affiliateView" data-dashboard-view="affiliate" hidden>
-                    <h1>Affiliate Program</h1>
+                    <h1 id="affiliatePageTitle">Affiliate Program</h1>
 
                     <section class="affiliate-overview-grid">
                         <article class="affiliate-info-panel glass-card dashboard-module">
                             <h2>How It Works</h2>
-                            <p>Share your unique link to earn a <strong>10% commission</strong> on every purchase made by your referrals, for life.</p>
-                            <ol class="affiliate-steps">
-                                <li>Share your referral link with friends.</li>
-                                <li>A new user signs up using your link.</li>
-                                <li>You earn 10% of every order they place.</li>
-                                <li>Your earnings appear in your Available Balance.</li>
-                                <li>Transfer it to your main wallet instantly or withdraw it to an external crypto wallet (min $10).</li>
-                            </ol>
-                            <div class="affiliate-commission-box"><strong>10% lifetime commission</strong><span>Earn from every eligible order placed by your referrals.</span></div>
+                            <p id="affiliatePageSubtitle">Share your unique link to earn a <strong>10% commission</strong> on every purchase made by your referrals, for life.</p>
+                            <ol class="affiliate-steps" id="affiliateSteps"></ol>
+                            <div class="affiliate-commission-box"><strong id="affiliateHighlightTitle">10% lifetime commission</strong><span id="affiliateHighlightNote">Earn from every eligible order placed by your referrals.</span></div>
                         </article>
 
                         <article class="affiliate-link-panel glass-card dashboard-module">
@@ -229,7 +223,7 @@
                     <div class="modal-backdrop" id="affiliateWithdrawModal" hidden>
                         <section class="modal-card affiliate-withdraw-modal" role="dialog" aria-modal="true" aria-labelledby="affiliateWithdrawTitle">
                             <div class="section-heading"><h2 id="affiliateWithdrawTitle">Withdraw Crypto</h2><button class="icon-button" id="closeAffiliateWithdraw" type="button" aria-label="Close withdrawal dialog">&times;</button></div>
-                            <form id="affiliateWithdrawForm"><label>External crypto wallet address<input id="affiliateWalletInput" type="text" autocomplete="off" required></label><p class="affiliate-withdraw-note">Minimum withdrawal: $10.00</p><p class="affiliate-status" id="affiliateWithdrawStatus" role="status" aria-live="polite"></p><button class="admin-button admin-button-primary" type="submit">Submit Withdrawal Request</button></form>
+                            <form id="affiliateWithdrawForm"><label>External crypto wallet address<input id="affiliateWalletInput" type="text" autocomplete="off" required></label><p class="affiliate-withdraw-note" id="affiliateWithdrawNote">Minimum withdrawal: $10.00</p><p class="affiliate-status" id="affiliateWithdrawStatus" role="status" aria-live="polite"></p><button class="admin-button admin-button-primary" type="submit">Submit Withdrawal Request</button></form>
                         </section>
                     </div>
                 </section>

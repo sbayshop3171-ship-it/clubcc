@@ -45,6 +45,7 @@ const CARTS_PATH = path.join(DATA_DIR, 'carts.json');
 const SSNS_PATH = path.join(DATA_DIR, 'ssns.json');
 const SUPPORT_TICKETS_PATH = path.join(DATA_DIR, 'support-tickets.json');
 const AFFILIATE_PAYOUTS_PATH = path.join(DATA_DIR, 'affiliate-payouts.json');
+const AFFILIATE_SETTINGS_PATH = path.join(DATA_DIR, 'affiliate-settings.json');
 const STORAGE_DIR = path.join(ROOT, 'storage');
 const LOG_DIR = path.join(STORAGE_DIR, 'logs');
 const AUTH_AUDIT_LOG_PATH = path.join(LOG_DIR, 'auth-audit.log');
@@ -56,6 +57,21 @@ const DEFAULT_VIRTUAL_CARD_SETTINGS = {
     defaultAmount: 5,
     badgeEnabled: true,
     badgeText: 'Minimum $0.02 | Maximum $1,000.00'
+};
+const DEFAULT_AFFILIATE_SETTINGS = {
+    commissionRate: 10,
+    minimumWithdrawal: 10,
+    title: 'Affiliate Program',
+    subtitle: 'Share your unique link to earn a {{commissionRate}}% commission on every purchase made by your referrals, for life.',
+    steps: [
+        'Share your referral link with friends.',
+        'A new user signs up using your link.',
+        'You earn {{commissionRate}}% of every order they place.',
+        'Your earnings appear in your Available Balance.',
+        'Transfer it to your main wallet instantly or withdraw it to an external crypto wallet (min ${{minimumWithdrawal}}).'
+    ],
+    highlightTitle: '{{commissionRate}}% lifetime commission',
+    highlightNote: 'Earn from every eligible order placed by your referrals.'
 };
 const DEFAULT_TOOL_ALERT_SETTINGS = {
     checker: { enabled: true, delaySeconds: 10, icon: 'info', customIconUrl: '', title: 'COMING SOON', description: 'We are working on this feature. Please check again later.', buttonText: 'OK' },
@@ -393,6 +409,40 @@ function writeAffiliatePayouts(data) {
     writeJsonStore(AFFILIATE_PAYOUTS_PATH, data);
 }
 
+function sanitizeAffiliateSettings(settings = {}) {
+    const rawCommissionRate = Number(settings.commissionRate);
+    const rawMinimumWithdrawal = Number(settings.minimumWithdrawal);
+    const commissionRate = Number(Math.min(100, Math.max(0, Number.isFinite(rawCommissionRate) ? rawCommissionRate : DEFAULT_AFFILIATE_SETTINGS.commissionRate)).toFixed(2));
+    const minimumWithdrawal = Number(Math.max(0, Number.isFinite(rawMinimumWithdrawal) ? rawMinimumWithdrawal : DEFAULT_AFFILIATE_SETTINGS.minimumWithdrawal).toFixed(2));
+    const steps = Array.isArray(settings.steps) ? settings.steps : DEFAULT_AFFILIATE_SETTINGS.steps;
+
+    return {
+        commissionRate,
+        minimumWithdrawal,
+        title: sanitizeText(settings.title, DEFAULT_AFFILIATE_SETTINGS.title, 120),
+        subtitle: sanitizeText(settings.subtitle, DEFAULT_AFFILIATE_SETTINGS.subtitle, 320),
+        steps: Array.from({ length: 5 }, (_, index) => sanitizeText(steps[index], DEFAULT_AFFILIATE_SETTINGS.steps[index], 240)),
+        highlightTitle: sanitizeText(settings.highlightTitle, DEFAULT_AFFILIATE_SETTINGS.highlightTitle, 120),
+        highlightNote: sanitizeText(settings.highlightNote, DEFAULT_AFFILIATE_SETTINGS.highlightNote, 240)
+    };
+}
+
+function readAffiliateSettings() {
+    const settings = sanitizeAffiliateSettings(readJsonStore(AFFILIATE_SETTINGS_PATH, DEFAULT_AFFILIATE_SETTINGS));
+
+    if (!fs.existsSync(AFFILIATE_SETTINGS_PATH)) {
+        writeJsonStore(AFFILIATE_SETTINGS_PATH, settings);
+    }
+
+    return settings;
+}
+
+function writeAffiliateSettings(settings) {
+    const sanitizedSettings = sanitizeAffiliateSettings(settings);
+    writeJsonStore(AFFILIATE_SETTINGS_PATH, sanitizedSettings);
+    return sanitizedSettings;
+}
+
 function affiliateReferrals(db, user) {
     return db.users.filter((candidate) => candidate.referredBy === user.referralCode);
 }
@@ -400,10 +450,12 @@ function affiliateReferrals(db, user) {
 function affiliateResponse(db, user) {
     ensureAffiliateProfile(user);
     const referrals = affiliateReferrals(db, user);
+    const settings = readAffiliateSettings();
     return {
         referralCode: user.referralCode,
         referralLink: `/register/?ref=${encodeURIComponent(user.referralCode)}`,
-        commissionRate: 10,
+        settings,
+        commissionRate: settings.commissionRate,
         totalReferrals: referrals.length,
         lifetimeEarnings: user.affiliateLifetimeEarnings,
         availableBalance: user.affiliateBalance,
@@ -418,7 +470,7 @@ function affiliateResponse(db, user) {
 function awardAffiliateCommission(db, buyer, purchase) {
     ensureAffiliateProfile(buyer);
     const referrer = db.users.find((candidate) => candidate.referralCode === buyer.referredBy);
-    const commission = Number((sanitizePrice(purchase.amount) * 0.10).toFixed(2));
+    const commission = Number((sanitizePrice(purchase.amount) * readAffiliateSettings().commissionRate / 100).toFixed(2));
 
     if (!referrer || commission <= 0 || purchase.affiliateCommissionAwardedAt) {
         return;
@@ -3307,8 +3359,9 @@ async function handleDashboardAffiliate(req, res) {
 
     if (action === 'withdraw') {
         const wallet = sanitizeText(body.wallet, '', 180);
-        if (user.affiliateBalance < 10) {
-            sendError(res, 400, 'Minimum crypto withdrawal is $10.00');
+        const affiliateSettings = readAffiliateSettings();
+        if (user.affiliateBalance < affiliateSettings.minimumWithdrawal) {
+            sendError(res, 400, `Minimum crypto withdrawal is $${affiliateSettings.minimumWithdrawal.toFixed(2)}`);
             return;
         }
         if (!wallet) {
@@ -3680,6 +3733,20 @@ function handleAdminVirtualCardSettings(req, res) {
         }
         jsonResponse(res, 200, { ok: true, settings: writeVirtualCardSettings(body) });
     }).catch(() => sendError(res, 400, 'Invalid virtual card settings payload'));
+}
+
+function handleAdminAffiliateSettings(req, res) {
+    if (req.method === 'GET') {
+        jsonResponse(res, 200, { ok: true, settings: readAffiliateSettings() });
+        return;
+    }
+
+    parseBody(req).then((body) => {
+        if (!requireMasterAdminKey(body, res)) {
+            return;
+        }
+        jsonResponse(res, 200, { ok: true, settings: writeAffiliateSettings(body) });
+    }).catch(() => sendError(res, 400, 'Invalid affiliate settings payload'));
 }
 
 async function handleAdminPaymentUnlock(req, res) {
@@ -4066,6 +4133,14 @@ async function handleRequest(req, res) {
                 return;
             }
             handleAdminVirtualCardSettings(req, res);
+            return;
+        }
+
+        if ((req.method === 'GET' || req.method === 'PUT') && url.pathname === '/api/admin/affiliate-settings') {
+            if (!requireAdminSession(req, res)) {
+                return;
+            }
+            handleAdminAffiliateSettings(req, res);
             return;
         }
 
