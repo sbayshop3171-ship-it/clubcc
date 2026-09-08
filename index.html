@@ -664,11 +664,13 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                                     <th scope="col">Status</th>
                                     <th scope="col">Created</th>
                                     <th scope="col">Last Login</th>
+                                    <th scope="col">Affiliate</th>
+                                    <th scope="col">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="usersTableBody">
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-5">Loading users...</td>
+                                    <td colspan="7" class="text-center text-muted py-5">Loading users...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -678,6 +680,28 @@ SUPPORT | Open a secure ticket | /dashboard/#support | red</textarea>
                     </div>
                 </div>
             </section>
+
+            <div class="modal fade" id="userAffiliateModal" tabindex="-1" aria-labelledby="userAffiliateModalTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="userAffiliateModalTitle">Manage Affiliate Stats</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="userAffiliateForm" autocomplete="off">
+                            <div class="modal-body">
+                                <p class="text-muted" id="userAffiliateUserLabel"></p>
+                                <div class="mb-3"><label class="form-label" for="userAffiliateTotalReferrals">Total Referrals</label><input class="form-control" id="userAffiliateTotalReferrals" type="number" min="0" step="1" required></div>
+                                <div class="mb-3"><label class="form-label" for="userAffiliateLifetimeEarnings">Total Lifetime Earnings</label><input class="form-control" id="userAffiliateLifetimeEarnings" type="number" min="0" step="0.01" required></div>
+                                <div class="mb-3"><label class="form-label" for="userAffiliateBalance">Available for Payout</label><input class="form-control" id="userAffiliateBalance" type="number" min="0" step="0.01" required></div>
+                                <div class="mb-3"><label class="form-label" for="userAffiliateMasterAdminKey">Master Admin Key</label><input class="form-control" id="userAffiliateMasterAdminKey" type="password" autocomplete="off" required></div>
+                                <div class="text-danger" id="userAffiliateStatus" role="status" aria-live="polite"></div>
+                            </div>
+                            <div class="modal-footer"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" type="submit">Save Affiliate Stats</button></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
             <section id="cardsSection" class="admin-cards-section py-4" data-admin-view-panel="cards" hidden>
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">

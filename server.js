@@ -394,6 +394,10 @@ function ensureAffiliateProfile(user) {
     }
     user.affiliateBalance = sanitizePrice(user.affiliateBalance);
     user.affiliateLifetimeEarnings = sanitizePrice(user.affiliateLifetimeEarnings);
+    if (user.affiliateReferralCountOverride !== null && user.affiliateReferralCountOverride !== undefined) {
+        const referralCount = Number(user.affiliateReferralCountOverride);
+        user.affiliateReferralCountOverride = Number.isInteger(referralCount) && referralCount >= 0 ? referralCount : null;
+    }
     return user;
 }
 
@@ -456,7 +460,7 @@ function affiliateResponse(db, user) {
         referralLink: `/register/?ref=${encodeURIComponent(user.referralCode)}`,
         settings,
         commissionRate: settings.commissionRate,
-        totalReferrals: referrals.length,
+        totalReferrals: user.affiliateReferralCountOverride ?? referrals.length,
         lifetimeEarnings: user.affiliateLifetimeEarnings,
         availableBalance: user.affiliateBalance,
         referrals: referrals.map((referral) => ({
@@ -1955,6 +1959,7 @@ function isLoginUsernameCandidate(username) {
 
 function publicUser(user) {
     ensureAffiliateProfile(user);
+    const referralCount = user.affiliateReferralCountOverride ?? null;
     return {
         id: user.id,
         username: user.username,
@@ -1963,7 +1968,11 @@ function publicUser(user) {
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         lastLoginAt: user.lastLoginAt || null,
-        referralCode: user.referralCode
+        referralCode: user.referralCode,
+        totalReferrals: referralCount ?? 0,
+        totalLifetimeEarnings: user.affiliateLifetimeEarnings,
+        affiliateBalance: user.affiliateBalance,
+        hasReferralCountOverride: referralCount !== null
     };
 }
 
@@ -2705,13 +2714,49 @@ function handleAdminLogout(req, res) {
 function handleUsers(req, res) {
     const db = readDatabase();
     const users = db.users
-        .map(publicUser)
+        .map((user) => ({
+            ...publicUser(user),
+            totalReferrals: user.affiliateReferralCountOverride ?? affiliateReferrals(db, user).length
+        }))
         .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     jsonResponse(res, 200, {
         ok: true,
         users
     });
+}
+
+async function handleAdminUserAffiliateStats(req, res, userId) {
+    const body = await parseBody(req);
+    const db = readDatabase();
+    const user = db.users.find((candidate) => String(candidate.id) === String(userId));
+
+    if (!user) {
+        sendError(res, 404, 'User not found');
+        return;
+    }
+
+    if (!requireMasterAdminKey(body, res)) {
+        return;
+    }
+
+    const totalReferrals = Number(body.totalReferrals);
+    const lifetimeEarnings = Number(body.totalLifetimeEarnings);
+    const affiliateBalance = Number(body.affiliateBalance);
+
+    if (!Number.isInteger(totalReferrals) || totalReferrals < 0 || !Number.isFinite(lifetimeEarnings) || lifetimeEarnings < 0 || !Number.isFinite(affiliateBalance) || affiliateBalance < 0) {
+        sendError(res, 400, 'Affiliate stats must contain valid non-negative values');
+        return;
+    }
+
+    ensureAffiliateProfile(user);
+    user.affiliateReferralCountOverride = totalReferrals;
+    user.affiliateLifetimeEarnings = sanitizePrice(lifetimeEarnings);
+    user.affiliateBalance = sanitizePrice(affiliateBalance);
+    user.updatedAt = new Date().toISOString();
+    writeDatabase(db);
+
+    jsonResponse(res, 200, { ok: true, user: publicUser(user) });
 }
 
 function handleSession(req, res) {
@@ -3974,6 +4019,15 @@ async function handleRequest(req, res) {
                 return;
             }
             handleUsers(req, res);
+            return;
+        }
+
+        const adminUserAffiliateMatch = url.pathname.match(/^\/api\/admin\/users\/(\d+)\/affiliate-stats$/);
+        if (req.method === 'PUT' && adminUserAffiliateMatch) {
+            if (!requireAdminSession(req, res)) {
+                return;
+            }
+            await handleAdminUserAffiliateStats(req, res, adminUserAffiliateMatch[1]);
             return;
         }
 

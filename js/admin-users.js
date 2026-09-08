@@ -21,9 +21,19 @@
     const dashboardSection = document.getElementById('dashboardSection');
     const section = document.getElementById('usersSection');
     const tableBody = document.getElementById('usersTableBody');
+    let currentUsers = [];
     const emptyState = document.getElementById('usersEmptyState');
     const usersCount = document.getElementById('usersCount');
     const refreshButton = document.getElementById('refreshUsers');
+    const userAffiliateModal = document.getElementById('userAffiliateModal');
+    const userAffiliateForm = document.getElementById('userAffiliateForm');
+    const userAffiliateUserLabel = document.getElementById('userAffiliateUserLabel');
+    const userAffiliateTotalReferrals = document.getElementById('userAffiliateTotalReferrals');
+    const userAffiliateLifetimeEarnings = document.getElementById('userAffiliateLifetimeEarnings');
+    const userAffiliateBalance = document.getElementById('userAffiliateBalance');
+    const userAffiliateMasterAdminKey = document.getElementById('userAffiliateMasterAdminKey');
+    const userAffiliateStatus = document.getElementById('userAffiliateStatus');
+    let selectedAffiliateUserId = null;
     const refreshDashboardSettings = document.getElementById('refreshDashboardSettings');
     const usersNavLink = document.getElementById('usersNavLink');
     const cardsNavLink = document.getElementById('cardsNavLink');
@@ -1179,6 +1189,7 @@
     }
 
     function renderUsers(users) {
+        currentUsers = users;
         usersCount.textContent = `${users.length} ${users.length === 1 ? 'user' : 'users'}`;
 
         if (!users.length) {
@@ -1200,8 +1211,45 @@
                 <td><span class="badge bg-success-subtle text-success">${escapeHtml(user.status || 'active')}</span></td>
                 <td>${escapeHtml(formatDate(user.createdAt))}</td>
                 <td>${escapeHtml(formatDate(user.lastLoginAt))}</td>
+                <td><div class="small">${Number(user.totalReferrals || 0)} referrals</div><div class="small text-muted">$${Number(user.affiliateBalance || 0).toFixed(2)} available</div></td>
+                <td><button class="btn btn-sm btn-outline-primary" type="button" data-manage-affiliate="${escapeHtml(user.id)}">Manage Affiliate</button></td>
             </tr>
         `).join('');
+    }
+
+    function openUserAffiliateEditor(user) {
+        selectedAffiliateUserId = user.id;
+        userAffiliateUserLabel.textContent = `Editing affiliate stats for ${user.username}`;
+        userAffiliateTotalReferrals.value = user.totalReferrals ?? 0;
+        userAffiliateLifetimeEarnings.value = Number(user.totalLifetimeEarnings || 0).toFixed(2);
+        userAffiliateBalance.value = Number(user.affiliateBalance || 0).toFixed(2);
+        userAffiliateMasterAdminKey.value = '';
+        userAffiliateStatus.textContent = '';
+        bootstrap.Modal.getOrCreateInstance(userAffiliateModal).show();
+    }
+
+    async function saveUserAffiliateStats(event) {
+        event.preventDefault();
+        userAffiliateStatus.textContent = 'Saving...';
+        const payload = {
+            totalReferrals: Number(userAffiliateTotalReferrals.value),
+            totalLifetimeEarnings: Number(userAffiliateLifetimeEarnings.value),
+            affiliateBalance: Number(userAffiliateBalance.value),
+            masterAdminKey: userAffiliateMasterAdminKey.value.trim()
+        };
+
+        try {
+            const response = await fetch(`/api/admin/users/${encodeURIComponent(selectedAffiliateUserId)}/affiliate-stats`, {
+                method: 'PUT',
+                headers: { ...authHeaders(), 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify(payload)
+            });
+            await adminJson(response, 'Unable to save affiliate stats');
+            bootstrap.Modal.getOrCreateInstance(userAffiliateModal).hide();
+            await loadUsers();
+        } catch (error) {
+            userAffiliateStatus.textContent = error.message || 'Unable to save affiliate stats';
+        }
     }
 
     async function loadUsers() {
@@ -1945,6 +1993,13 @@
     renderAdminIdentity(adminSession);
 
     refreshButton.addEventListener('click', loadUsers);
+    tableBody.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-manage-affiliate]');
+        if (!button) return;
+        const user = currentUsers.find((candidate) => String(candidate.id) === String(button.dataset.manageAffiliate));
+        if (user) openUserAffiliateEditor(user);
+    });
+    userAffiliateForm?.addEventListener('submit', saveUserAffiliateStats);
     refreshDashboardSettings?.addEventListener('click', loadDashboardSettings);
     onlineCountInput?.addEventListener('input', () => {
         renderOnlinePreview(onlineCountInput.value);
