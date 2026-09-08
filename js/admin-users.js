@@ -15,7 +15,8 @@
         payment: '/admin/payment',
         requests: '/admin/payment',
         profile: '/admin/profile',
-        settings: '/admin/settings'
+        settings: '/admin/settings',
+        affiliate: '/admin'
     };
     const dashboardSection = document.getElementById('dashboardSection');
     const section = document.getElementById('usersSection');
@@ -37,10 +38,21 @@
     const otpBypassSection = document.getElementById('otpBypassSection');
     const profileSection = document.getElementById('profileSection');
     const settingsSection = document.getElementById('settingsSection');
+    const affiliateSettingsSection = document.getElementById('affiliateSettingsSection');
     const paymentSection = document.getElementById('paymentSection');
     const requestsSection = document.getElementById('requestsSection');
     const paymentNavLink = document.getElementById('paymentNavLink');
     const depositRequestsNavLink = document.getElementById('depositRequestsNavLink');
+    const affiliateSettingsNavLink = document.getElementById('affiliateSettingsNavLink');
+    const adminAffiliateSettingsForm = document.getElementById('adminAffiliateSettingsForm');
+    const adminAffiliateSettingsStatus = document.getElementById('adminAffiliateSettingsStatus');
+    const adminAffiliateCommissionRate = document.getElementById('adminAffiliateCommissionRate');
+    const adminAffiliateMinimumWithdrawal = document.getElementById('adminAffiliateMinimumWithdrawal');
+    const adminAffiliateTitle = document.getElementById('adminAffiliateTitle');
+    const adminAffiliateSubtitle = document.getElementById('adminAffiliateSubtitle');
+    const adminAffiliateSteps = [1, 2, 3, 4, 5].map((step) => document.getElementById(`adminAffiliateStep${step}`));
+    const adminAffiliateHighlightTitle = document.getElementById('adminAffiliateHighlightTitle');
+    const adminAffiliateHighlightNote = document.getElementById('adminAffiliateHighlightNote');
     const paymentSettingsForm = document.getElementById('paymentSettingsForm');
     const adminPaymentMethods = document.getElementById('adminPaymentMethods');
     const minimumDepositInput = document.getElementById('minimumDepositInput');
@@ -283,6 +295,10 @@
 
         if (legacyHash === 'ssn') {
             return 'ssn';
+        }
+
+        if (legacyHash === 'affiliate') {
+            return 'affiliate';
         }
 
         const pathname = normalizeAdminPath();
@@ -1795,6 +1811,58 @@
         }
     }
 
+    function setAdminAffiliateStatus(message, type = '') {
+        if (!adminAffiliateSettingsStatus) return;
+        adminAffiliateSettingsStatus.textContent = message;
+        adminAffiliateSettingsStatus.classList.toggle('text-success', type === 'success');
+        adminAffiliateSettingsStatus.classList.toggle('text-danger', type === 'error');
+    }
+
+    function populateAdminAffiliateSettings(settings) {
+        adminAffiliateCommissionRate.value = Number(settings.commissionRate).toFixed(2);
+        adminAffiliateMinimumWithdrawal.value = Number(settings.minimumWithdrawal).toFixed(2);
+        adminAffiliateTitle.value = settings.title || '';
+        adminAffiliateSubtitle.value = settings.subtitle || '';
+        adminAffiliateSteps.forEach((input, index) => { input.value = settings.steps?.[index] || ''; });
+        adminAffiliateHighlightTitle.value = settings.highlightTitle || '';
+        adminAffiliateHighlightNote.value = settings.highlightNote || '';
+    }
+
+    async function loadAdminAffiliateSettings() {
+        setAdminAffiliateStatus('Loading');
+        try {
+            const data = await adminJson(await fetch('/api/admin/affiliate-settings', { headers: authHeaders() }), 'Unable to load Affiliate settings');
+            populateAdminAffiliateSettings(data.settings);
+            setAdminAffiliateStatus('Synced', 'success');
+        } catch (error) {
+            setAdminAffiliateStatus(error.message || 'Load failed', 'error');
+        }
+    }
+
+    async function saveAdminAffiliateSettings(event) {
+        event.preventDefault();
+        setAdminAffiliateStatus('Saving');
+        try {
+            const data = await adminJson(await fetch('/api/admin/affiliate-settings', {
+                method: 'PUT',
+                headers: { ...authHeaders(), 'Content-Type': 'application/json; charset=utf-8' },
+                body: JSON.stringify({
+                    commissionRate: Number(adminAffiliateCommissionRate.value),
+                    minimumWithdrawal: Number(adminAffiliateMinimumWithdrawal.value),
+                    title: adminAffiliateTitle.value,
+                    subtitle: adminAffiliateSubtitle.value,
+                    steps: adminAffiliateSteps.map((input) => input.value),
+                    highlightTitle: adminAffiliateHighlightTitle.value,
+                    highlightNote: adminAffiliateHighlightNote.value
+                })
+            }), 'Unable to save Affiliate settings');
+            populateAdminAffiliateSettings(data.settings);
+            setAdminAffiliateStatus('Saved', 'success');
+        } catch (error) {
+            setAdminAffiliateStatus(error.message || 'Save failed', 'error');
+        }
+    }
+
     function renderView() {
         const activeView = viewFromPath();
         const activeRoute = ADMIN_ROUTE_PATHS[activeView] || ADMIN_ROUTE_PATHS.dashboard;
@@ -1810,6 +1878,7 @@
         ssnSection.hidden = activeView !== 'ssn';
         profileSection.hidden = activeView !== 'profile';
         settingsSection.hidden = activeView !== 'settings';
+        affiliateSettingsSection.hidden = activeView !== 'affiliate';
         paymentSection.hidden = activeView !== 'payment';
         requestsSection.hidden = activeView !== 'requests';
         if (adminSettingsRoute) {
@@ -1827,6 +1896,7 @@
         ssnNavLink?.classList.toggle('active', activeView === 'ssn');
         paymentNavLink?.classList.toggle('active', activeView === 'payment');
         depositRequestsNavLink?.classList.toggle('active', activeView === 'requests');
+        affiliateSettingsNavLink?.classList.toggle('active', activeView === 'affiliate');
 
         if (refreshDashboardSettings) {
             refreshDashboardSettings.hidden = activeView !== 'dashboard';
@@ -1857,6 +1927,8 @@
             loadAdminSsn();
         } else if (activeView === 'settings') {
             loadTwoFactorSettings();
+        } else if (activeView === 'affiliate') {
+            loadAdminAffiliateSettings();
         } else {
             renderAdminIdentity(adminSessionOrRedirect());
         }
@@ -1901,6 +1973,7 @@
     checkerSettingsForm?.addEventListener('submit', saveCheckerSettings);
     toolAlertSettingsForms.forEach((form) => form.addEventListener('submit', saveToolAlertSettings));
     subPriceSettingsForm?.addEventListener('submit', saveSubPriceSettings);
+    adminAffiliateSettingsForm?.addEventListener('submit', saveAdminAffiliateSettings);
     document.querySelectorAll('.admin-ticket-filter').forEach((button) => {
         button.addEventListener('click', () => {
             document.querySelectorAll('.admin-ticket-filter').forEach((candidate) => candidate.classList.toggle('btn-dark', candidate === button));
