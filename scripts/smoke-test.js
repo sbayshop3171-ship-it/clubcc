@@ -129,6 +129,46 @@ async function assertAdminSession(baseUrl) {
         throw new Error('/api/admin/session rejected a fresh admin token');
     }
 
+    const adminPageResponse = await fetch(`${baseUrl}/admin/`);
+    const adminPageHtml = await adminPageResponse.text();
+
+    if (!adminPageResponse.ok || !adminPageHtml.includes('id="adminAffiliateMasterAdminKey"')) {
+        throw new Error('/admin/ is missing the affiliate settings Master Admin Key field');
+    }
+
+    const affiliateSaveResponse = await fetch(`${baseUrl}/api/admin/affiliate-settings`, {
+        method: 'PUT',
+        headers: {
+            ...sessionHeaders,
+            'Content-Type': 'application/json; charset=utf-8'
+        },
+        body: JSON.stringify({
+            commissionRate: 18,
+            minimumWithdrawal: 22,
+            title: 'Affiliate Program',
+            subtitle: 'Share your unique link to earn a {{commissionRate}}% commission on every purchase made by your referrals, for life.',
+            steps: [
+                'Share your referral link with friends.',
+                'A new user signs up using your link.',
+                'You earn {{commissionRate}}% of every order they place.',
+                'Your earnings appear in your Available Balance.',
+                'Transfer it to your main wallet instantly or withdraw it to an external crypto wallet (min ${{minimumWithdrawal}}).'
+            ],
+            highlightTitle: '{{commissionRate}}% lifetime commission',
+            highlightNote: 'Earn from every eligible order placed by your referrals.',
+            masterAdminKey: ciMasterAdminKey
+        })
+    });
+
+    if (!affiliateSaveResponse.ok) {
+        throw new Error('/api/admin/affiliate-settings rejected a valid admin session and Master Admin Key');
+    }
+
+    const affiliateData = await affiliateSaveResponse.json();
+    if (Number(affiliateData.settings.commissionRate) !== 18 || Number(affiliateData.settings.minimumWithdrawal) !== 22) {
+        throw new Error('/api/admin/affiliate-settings did not persist the expected values');
+    }
+
     const lockedSaveResponse = await fetch(`${baseUrl}/api/admin/deposit-settings`, {
         method: 'PUT',
         headers: {

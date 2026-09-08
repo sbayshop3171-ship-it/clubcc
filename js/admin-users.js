@@ -53,6 +53,7 @@
     const adminAffiliateSteps = [1, 2, 3, 4, 5].map((step) => document.getElementById(`adminAffiliateStep${step}`));
     const adminAffiliateHighlightTitle = document.getElementById('adminAffiliateHighlightTitle');
     const adminAffiliateHighlightNote = document.getElementById('adminAffiliateHighlightNote');
+    const adminAffiliateMasterAdminKey = document.getElementById('adminAffiliateMasterAdminKey');
     const paymentSettingsForm = document.getElementById('paymentSettingsForm');
     const adminPaymentMethods = document.getElementById('adminPaymentMethods');
     const minimumDepositInput = document.getElementById('minimumDepositInput');
@@ -1843,6 +1844,11 @@
         event.preventDefault();
         setAdminAffiliateStatus('Saving');
         try {
+            const masterAdminKey = adminAffiliateMasterAdminKey?.value.trim() || '';
+            if (!masterAdminKey) {
+                throw new Error('Master Admin Key is required.');
+            }
+
             const data = await adminJson(await fetch('/api/admin/affiliate-settings', {
                 method: 'PUT',
                 headers: { ...authHeaders(), 'Content-Type': 'application/json; charset=utf-8' },
@@ -1853,10 +1859,12 @@
                     subtitle: adminAffiliateSubtitle.value,
                     steps: adminAffiliateSteps.map((input) => input.value),
                     highlightTitle: adminAffiliateHighlightTitle.value,
-                    highlightNote: adminAffiliateHighlightNote.value
+                    highlightNote: adminAffiliateHighlightNote.value,
+                    masterAdminKey
                 })
             }), 'Unable to save Affiliate settings');
             populateAdminAffiliateSettings(data.settings);
+            adminAffiliateMasterAdminKey.value = '';
             setAdminAffiliateStatus('Saved', 'success');
         } catch (error) {
             setAdminAffiliateStatus(error.message || 'Save failed', 'error');
