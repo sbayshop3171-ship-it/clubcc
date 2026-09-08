@@ -312,7 +312,7 @@
 
     function routeToView(view, replace = false) {
         const routePath = ADMIN_ROUTE_PATHS[view] || ADMIN_ROUTE_PATHS.dashboard;
-        const hash = ['requests', 'ssn'].includes(view) ? `#${view}` : '';
+        const hash = ['requests', 'ssn', 'affiliate'].includes(view) ? `#${view}` : '';
 
         if (normalizeAdminPath() !== routePath || window.location.hash !== hash) {
             window.history[replace ? 'replaceState' : 'pushState']({}, '', `${routePath}${hash}`);
